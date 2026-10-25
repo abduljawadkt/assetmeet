@@ -28,3 +28,18 @@
 @keyframes logoRipple{from{opacity:.5;transform:scale(.8)}to{opacity:0;transform:scale(1.35)}}
 @media(max-width:760px){.ap-logo-intro{margin-bottom:26px}.ap-logo-intro .asset-wordmark{gap:11px;letter-spacing:-2px}.ap-hero{padding-top:30px}}
 @media(prefers-reduced-motion:reduce){.ap-logo-intro .am-symbol,.ap-logo-intro .am-name,.ap-logo-intro .am-name small,.ap-hero>.ap-kicker{animation:none!important;opacity:1;transform:none;clip-path:none}.ap-logo-intro .am-symbol:after{display:none}}
+
+/* A dedicated welcome screen. The full website mounts only after entry. */
+.ap-intro-screen{min-height:100svh;display:grid;place-items:center;padding:48px 24px;background:#fff}
+.ap-intro-content{width:100%;max-width:1100px;text-align:center}
+.ap-intro-screen .ap-logo-intro{margin-bottom:56px}
+.ap-intro-screen .ap-caption{font-size:clamp(25px,3.2vw,43px);line-height:1.28;letter-spacing:-1.2px;margin-bottom:38px}
+.ap-intro-screen .ap-caption-line{animation-delay:1.5s}
+.ap-intro-screen .ap-caption-line:nth-child(2){animation-delay:2.15s}
+.ap-intro-screen .ap-caption-line:nth-child(3){animation-delay:2.8s}
+.ap-site .ap-enter-site{display:inline-flex;align-items:center;gap:14px;animation:introEntry .7s 3.5s both}
+.ap-main-hero .ap-caption-line,.ap-main-hero>.ap-kicker,.ap-main-hero .ap-caption-visual,.ap-main-hero:has(.ap-caption) .ap-hero-photo{animation:none}
+.ap-main-hero .ap-caption-visual>i:after{animation:none;display:none}
+@keyframes introEntry{from{opacity:0;visibility:hidden;transform:translateY(12px)}to{opacity:1;visibility:visible;transform:translateY(0)}}
+@media(max-width:760px){.ap-intro-screen{padding:36px 22px}.ap-intro-screen .ap-logo-intro{margin-bottom:42px}.ap-intro-screen .ap-caption{font-size:25px;letter-spacing:-.7px}.ap-intro-screen .ap-caption-line{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.ap-site .ap-enter-site{animation:none;opacity:1;visibility:visible;transform:none}}
