@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {match} from './matching.ts';
+const a:any={id:'a',name:'A',district:'Kozhikode',type:'Commercial',area:20000,price:400000,transaction:'Lease',construction:'Completed',market:'Available',verification:'Mandate signed',parking:40,months:0,consent:true,source:'Engineer'};
+const r:any={id:'r',name:'R',district:'Kozhikode',type:'Commercial',minArea:15000,maxArea:25000,budget:500000,transaction:'Lease',parking:30,months:6};
+test('compatible asset gets full score',()=>assert.equal(match(a,r)?.score,100));
+test('incompatible type and transaction excluded',()=>{assert.equal(match({...a,type:'Land'},r),null);assert.equal(match({...a,transaction:'Sale'},r),null)});
+test('unavailable inventory excluded',()=>assert.equal(match({...a,market:'Sold / leased'},r),null));
+test('unconfirmed owner creates private outreach',()=>assert.equal(match({...a,consent:false},r)?.outreach,true));
+test('unknown market creates outreach even with permission',()=>assert.equal(match({...a,market:'Unknown'},r)?.outreach,true));
+test('unknown price not counted as budget fit',()=>assert.equal(match({...a,price:0},r)?.score,80));
+test('readiness and parking affect score',()=>assert.ok(match({...a,months:12,parking:10},r)!.score<100));

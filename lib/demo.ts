@@ -1,0 +1,7 @@
+export const demo:any[]=[
+{id:'demo1',kind:'property',name:'Bypass Commerce Centre',district:'Kozhikode',type:'Commercial',area:22000,price:480000,transaction:'Lease',construction:'Completed',market:'Available',verification:'Mandate signed',parking:40,months:0,consent:true,source:'Illustrative engineer'},
+{id:'demo2',kind:'property',name:'North Gate Logistics Park',district:'Ernakulam',type:'Warehouse',area:34000,price:620000,transaction:'Lease',construction:'Completed',market:'Exploring',verification:'Reported',parking:24,months:1,consent:false,source:'Illustrative partner'},
+{id:'demo3',kind:'property',name:'Riverside Commercial Plot',district:'Thrissur',type:'Land',area:54000,price:24000000,transaction:'Sale',construction:'Sanctioned',market:'Unknown',verification:'Reported',parking:0,months:3,consent:false,source:'Illustrative architect'},
+{id:'demo4',kind:'property',name:'West Hill Retail Square',district:'Kozhikode',type:'Commercial',area:18500,price:560000,transaction:'Lease',construction:'Under construction',market:'Unknown',verification:'Reported',parking:28,months:8,consent:false,source:'Illustrative engineer'},
+{id:'demor',kind:'requirement',name:'Supermarket expansion',district:'Kozhikode',type:'Commercial',minArea:15000,maxArea:25000,budget:500000,transaction:'Lease',parking:30,months:6}
+];
