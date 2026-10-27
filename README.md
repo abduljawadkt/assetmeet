@@ -14,6 +14,13 @@ Commercial property matching and brokerage for Kerala. Expanding businesses post
 - Server validation (`lib/records.ts`), same-origin write checks, owner scoping, the owner-permission rule on deal stages, delete protection for records linked to deals, and an append-only `events` audit table.
 - Read-only sample workspace at `/?view=app&demo=1` (fictional records, nothing saved).
 
+## Admin and demo accounts
+`node --experimental-strip-types scripts/demo-accounts.ts > demo.sql` creates an admin (Staff) account, demo Business, Owner and Contributor accounts, and sample records. It prints the generated passwords once (only hashes are stored). Run `demo.sql` in the Neon SQL editor. These accounts sign in with **Sign in with a password instead**; everyone else signs up with an email link. Delete the demo accounts before a public launch:
+
+```sql
+DELETE FROM "user" WHERE email LIKE '%@assetmeet.example';
+```
+
 ## Granting staff access
 Staff is never self-selected. After the person has signed in and created a profile, set their role in the Neon SQL editor:
 

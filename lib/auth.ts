@@ -15,6 +15,9 @@ function createAuth() {
     secret: process.env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(getDb(), { provider: "pg", schema: { user, session, account, verification } }),
     session: { expiresIn: 60 * 60 * 24 * 30 },
+    // Password sign-in for accounts created by the team (admin and demo logins).
+    // New people sign up with an email link only.
+    emailAndPassword: { enabled: true, disableSignUp: true, minPasswordLength: 10 },
     plugins: [
       magicLink({
         expiresIn: 60 * 60,

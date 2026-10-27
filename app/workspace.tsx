@@ -160,12 +160,22 @@ function SignIn({ role, failed }: { role?: string; failed: boolean }) {
   const [sentTo, setSentTo] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(failed ? "That sign-in link has expired or was already used. Request a new one." : "");
+  const [usePassword, setUsePassword] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const email = String(new FormData(e.currentTarget).get("email")).trim();
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email")).trim();
+    if (usePassword) {
+      const { error: err } = await authClient.signIn.email({ email, password: String(form.get("password")) });
+      if (err) {
+        setBusy(false);
+        setError(err.status === 401 ? "That email and password don't match." : err.message || "Sign-in failed. Try again.");
+      } else window.location.assign(back);
+      return;
+    }
     const { error: err } = await authClient.signIn.magicLink({
       email,
       callbackURL: back,
@@ -197,15 +207,32 @@ function SignIn({ role, failed }: { role?: string; failed: boolean }) {
       <form className="stack" onSubmit={submit}>
         <label className="field">
           <span className="field-label">Work email</span>
-          <input name="email" type="email" required autoComplete="email" inputMode="email" placeholder="you@company.com" />
+          <input name="email" type="email" required autoComplete={usePassword ? "username" : "email"} inputMode="email" placeholder="you@company.com" />
         </label>
+        {usePassword && (
+          <label className="field">
+            <span className="field-label">Password</span>
+            <input name="password" type="password" required autoComplete="current-password" />
+          </label>
+        )}
         {error && (
           <p className="form-error" role="alert">
             {error}
           </p>
         )}
         <button className="btn btn-primary btn-lg" disabled={busy}>
-          {busy ? "Sending link…" : "Email me a sign-in link"} <ArrowRight size={18} />
+          {usePassword ? (busy ? "Signing in…" : "Sign in") : busy ? "Sending link…" : "Email me a sign-in link"}{" "}
+          <ArrowRight size={18} />
+        </button>
+        <button
+          type="button"
+          className="btn btn-quiet"
+          onClick={() => {
+            setUsePassword(!usePassword);
+            setError("");
+          }}
+        >
+          {usePassword ? "Email me a sign-in link instead" : "Sign in with a password instead"}
         </button>
       </form>
       <Link className="btn btn-secondary btn-lg" href="/?view=app&demo=1">
