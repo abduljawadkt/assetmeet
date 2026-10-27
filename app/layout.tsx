@@ -1,7 +1,8 @@
 import "./globals.css";
+import { siteUrl } from "../lib/site-url";
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl() ?? "http://localhost:3000"),
   title: "AssetMeet · Commercial property in Kerala",
   description:
     "Find commercial space in Kerala before it reaches the market. Scored shortlists for expanding businesses, with owner permission confirmed before every site visit.",

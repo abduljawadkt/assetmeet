@@ -7,10 +7,11 @@ import { nextCookies } from "better-auth/next-js";
 import { getDb } from "../db";
 import { account, session, user, verification } from "../db/auth-schema";
 import { sendMail } from "./mail";
+import { siteUrl } from "./site-url";
 
 function createAuth() {
   return betterAuth({
-    baseURL: process.env.NEXT_PUBLIC_SITE_URL,
+    baseURL: siteUrl(),
     secret: process.env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(getDb(), { provider: "pg", schema: { user, session, account, verification } }),
     session: { expiresIn: 60 * 60 * 24 * 30 },
