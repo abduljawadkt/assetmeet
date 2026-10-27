@@ -9,10 +9,31 @@ import { account, session, user, verification } from "../db/auth-schema";
 import { sendMail } from "./mail";
 import { siteUrl } from "./site-url";
 
+// Sign-in requests are accepted from the configured site address, its www /
+// non-www twin, and the address this request was actually served on (behind
+// Hostinger's proxy that comes from the forwarded headers). Other sites are refused.
+async function trustedOrigins(request?: Request) {
+  const origins = new Set<string>();
+  const configured = siteUrl();
+  if (configured) {
+    const url = new URL(configured);
+    origins.add(url.origin);
+    const twin = url.hostname.startsWith("www.") ? url.hostname.slice(4) : `www.${url.hostname}`;
+    origins.add(`${url.protocol}//${twin}${url.port ? `:${url.port}` : ""}`);
+  }
+  const host = request?.headers.get("x-forwarded-host") ?? request?.headers.get("host");
+  if (host) {
+    const proto = request?.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    origins.add(`${proto.split(",")[0].trim()}://${host.split(",")[0].trim()}`);
+  }
+  return [...origins];
+}
+
 function createAuth() {
   return betterAuth({
     baseURL: siteUrl(),
     secret: process.env.BETTER_AUTH_SECRET,
+    trustedOrigins,
     database: drizzleAdapter(getDb(), { provider: "pg", schema: { user, session, account, verification } }),
     session: { expiresIn: 60 * 60 * 24 * 30 },
     // Password sign-in for accounts created by the team (admin and demo logins).
