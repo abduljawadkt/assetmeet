@@ -92,3 +92,5 @@ export const events = pgTable(
   },
   (t) => [index("events_owner_idx").on(t.owner)],
 );
+
+export * from "./auth-schema";

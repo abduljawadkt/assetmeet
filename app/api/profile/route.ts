@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { getUser } from "../../../lib/supabase/server";
+import { getUser } from "../../../lib/auth";
 import { sameOrigin } from "../../../lib/http";
 import { getDb } from "../../../db";
 import { events, profiles } from "../../../db/schema";

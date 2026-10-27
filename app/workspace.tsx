@@ -20,7 +20,7 @@ import {
 import { MarketPill, MatchRow, Score, VerificationPill, Wordmark } from "./brand";
 import RecordDialog from "./record-dialog";
 import { api, type Row, type Session } from "../lib/api";
-import { createClient } from "../lib/supabase/client";
+import { authClient } from "../lib/auth-client";
 import { demoDeals, demoProperties, demoRequirements } from "../lib/demo";
 import { inr, priceLabel, sqft } from "../lib/format";
 import { match } from "../lib/matching";
@@ -133,7 +133,7 @@ export default function Workspace({ startRole, demo, signinFailed }: { startRole
 
 function SignOut({ demo, label }: { demo: boolean; label: string }) {
   async function leave() {
-    if (!demo) await createClient().auth.signOut();
+    if (!demo) await authClient.signOut();
     window.location.href = "/";
   }
   return (
@@ -166,12 +166,13 @@ function SignIn({ role, failed }: { role?: string; failed: boolean }) {
     setBusy(true);
     setError("");
     const email = String(new FormData(e.currentTarget).get("email")).trim();
-    const { error: err } = await createClient().auth.signInWithOtp({
+    const { error: err } = await authClient.signIn.magicLink({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(back)}` },
+      callbackURL: back,
+      errorCallbackURL: "/?view=app&signin=failed",
     });
     setBusy(false);
-    if (err) setError(err.message);
+    if (err) setError(err.message || "We couldn't send the sign-in email. Try again.");
     else setSentTo(email);
   }
 
