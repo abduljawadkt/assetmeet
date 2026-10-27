@@ -9,7 +9,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import { demoDeals, demoProperties, demoRequirements } from "../lib/demo.ts";
 
-const domain = process.env.DEMO_EMAIL_DOMAIN ?? "assetmeet.example";
+const domain = process.env.DEMO_EMAIL_DOMAIN ?? "assetmeet.com";
 const password = () => randomBytes(9).toString("base64url");
 const q = (v: unknown) => (v === null ? "NULL" : typeof v === "number" || typeof v === "boolean" ? String(v) : `'${String(v).replace(/'/g, "''")}'`);
 

@@ -18,7 +18,7 @@ Commercial property matching and brokerage for Kerala. Expanding businesses post
 `node --experimental-strip-types scripts/demo-accounts.ts > demo.sql` creates an admin (Staff) account, demo Business, Owner and Contributor accounts, and sample records. It prints the generated passwords once (only hashes are stored). Run `demo.sql` in the Neon SQL editor. These accounts sign in with **Sign in with a password instead**; everyone else signs up with an email link. Delete the demo accounts before a public launch:
 
 ```sql
-DELETE FROM "user" WHERE email LIKE '%@assetmeet.example';
+DELETE FROM "user" WHERE email IN ('business@assetmeet.com', 'owner@assetmeet.com', 'contributor@assetmeet.com');
 ```
 
 ## Granting staff access
@@ -44,7 +44,7 @@ Next.js 16 on Node.js, Neon Postgres (through `DATABASE_URL`, with Drizzle ORM),
 3. Connect > copy the **pooled** connection string. This is `DATABASE_URL`.
 
 ### 2. Mailbox
-Create a sending address (for example `no-reply@your-domain.com` in Hostinger Emails). Its SMTP settings go into `SMTP_*`. Sign-in links will not be sent without them.
+Create a sending address (for example `no-reply@assetmeet.com` in Hostinger Emails). Its SMTP settings go into `SMTP_*`. Sign-in links will not be sent without them.
 
 ### 3. Hostinger
 1. hPanel > Websites > Add website > Node.js app, and connect this GitHub repository (branch `main`).
