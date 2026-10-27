@@ -1,13 +1,15 @@
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
+import "server-only";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
-export function getDb() {
-  if (!env.DB) {
-    throw new Error(
-      "Cloudflare D1 binding `DB` is unavailable. Set the `d1` field in .openai/hosting.json to `DB` or let your control plane inject the real binding values before using the database."
-    );
-  }
+// One connection pool per server process, reused across requests and hot reloads.
+const globalForDb = globalThis as unknown as { assetmeetSql?: ReturnType<typeof postgres> };
 
-  return drizzle(env.DB, { schema });
+export function getDb() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL is not set. Add the Supabase connection string to the hosting environment.");
+  // prepare: false is required by Supabase's transaction pooler (port 6543).
+  globalForDb.assetmeetSql ??= postgres(url, { prepare: false, max: 5 });
+  return drizzle(globalForDb.assetmeetSql, { schema });
 }

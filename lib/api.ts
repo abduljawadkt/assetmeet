@@ -5,8 +5,6 @@ export type Session = {
   authenticated: boolean;
   name?: string;
   profile: Profile | null;
-  signIn: string;
-  signOut: string;
 };
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {

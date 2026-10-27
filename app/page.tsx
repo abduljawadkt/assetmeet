@@ -9,7 +9,7 @@ export default async function Page({
   const params = await searchParams;
   if (params.view === "app") {
     const role = typeof params.role === "string" ? params.role : undefined;
-    return <Workspace startRole={role} demo={params.demo === "1"} />;
+    return <Workspace startRole={role} demo={params.demo === "1"} signinFailed={params.signin === "failed"} />;
   }
   return <Landing />;
 }

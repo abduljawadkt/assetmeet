@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { getChatGPTUser } from "../../chatgpt-auth";
+import { getUser } from "../../../lib/supabase/server";
+import { sameOrigin } from "../../../lib/http";
 import { getDb } from "../../../db";
 import { deals, events, profiles, properties, requirements } from "../../../db/schema";
 import {
@@ -19,11 +20,6 @@ const kind = z.enum(["property", "requirement", "deal"]);
 
 function error(message: string, status = 400) {
   return Response.json({ error: message }, { status });
-}
-
-function sameOrigin(req: Request) {
-  const origin = req.headers.get("origin");
-  return !origin || origin === new URL(req.url).origin;
 }
 
 function omit<T extends object, K extends keyof T>(row: T, keys: K[]): Omit<T, K> {
@@ -60,7 +56,7 @@ async function profileFor(userId: string) {
 }
 
 export async function GET() {
-  const user = await getChatGPTUser();
+  const user = await getUser();
   if (!user) return error("Sign in required", 401);
   const db = getDb();
   const profile = await profileFor(user.userId);
@@ -119,7 +115,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const user = await getChatGPTUser();
+  const user = await getUser();
   if (!user) return error("Sign in required", 401);
   if (!sameOrigin(req)) return error("Invalid origin", 403);
   try {
@@ -162,22 +158,24 @@ export async function POST(req: Request) {
       const old = await db.select({ id: table.id }).from(table).where(scope);
       if (!old.length) return error("Record not found", 404);
     }
-    const write = body.id
-      ? db
+    await db.transaction(async (tx) => {
+      if (body.id)
+        await tx
           .update(table)
           .set({ ...data, updated: now })
-          .where(scope)
-      : db.insert(table).values({ ...data, id, owner, created: now, updated: now } as typeof table.$inferInsert);
-    await db.batch([
-      write,
-      db.insert(events).values({
+          .where(scope);
+      else
+        await tx
+          .insert(table)
+          .values({ ...data, id, owner, created: now, updated: now } as typeof table.$inferInsert);
+      await tx.insert(events).values({
         id: crypto.randomUUID(),
         owner,
         record: id,
         action: `${body.id ? "Updated" : "Created"} ${body.kind}`,
         created: now,
-      }),
-    ]);
+      });
+    });
     return Response.json({ ...data, id, kind: body.kind });
   } catch (e) {
     return error(e instanceof z.ZodError ? e.issues[0].message : "Unable to save this record");
@@ -185,7 +183,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const user = await getChatGPTUser();
+  const user = await getUser();
   if (!user) return error("Sign in required", 401);
   if (!sameOrigin(req)) return error("Invalid origin", 403);
   const url = new URL(req.url);

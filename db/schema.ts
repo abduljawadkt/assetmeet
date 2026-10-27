@@ -1,7 +1,9 @@
-import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, bigint, doublePrecision, boolean, index } from "drizzle-orm/pg-core";
+
+const time = (name: string) => bigint(name, { mode: "number" }).notNull();
 
 // One profile per signed-in account. Role decides which workspace views lead.
-export const profiles = sqliteTable("profiles", {
+export const profiles = pgTable("profiles", {
   owner: text("owner").primaryKey(),
   role: text("role").notNull(),
   name: text("name").notNull(),
@@ -10,11 +12,11 @@ export const profiles = sqliteTable("profiles", {
   licenseNumber: text("license_number").notNull().default(""),
   licenseAuthority: text("license_authority").notNull().default(""),
   verification: text("verification").notNull(),
-  created: integer("created").notNull(),
-  updated: integer("updated").notNull(),
+  created: time("created"),
+  updated: time("updated"),
 });
 
-export const properties = sqliteTable(
+export const properties = pgTable(
   "properties",
   {
     id: text("id").primaryKey(),
@@ -23,24 +25,24 @@ export const properties = sqliteTable(
     district: text("district").notNull(),
     locality: text("locality").notNull().default(""),
     type: text("type").notNull(),
-    area: real("area").notNull(),
-    price: real("price").notNull(),
+    area: doublePrecision("area").notNull(),
+    price: doublePrecision("price").notNull(),
     transaction: text("transaction").notNull(),
     construction: text("construction").notNull(),
     market: text("market").notNull(),
     verification: text("verification").notNull(),
     parking: integer("parking").notNull(),
     months: integer("months").notNull(),
-    consent: integer("consent", { mode: "boolean" }).notNull(),
+    consent: boolean("consent").notNull(),
     source: text("source").notNull(),
     ownerContact: text("owner_contact").notNull().default(""),
-    created: integer("created").notNull(),
-    updated: integer("updated").notNull(),
+    created: time("created"),
+    updated: time("updated"),
   },
   (t) => [index("properties_owner_idx").on(t.owner)],
 );
 
-export const requirements = sqliteTable(
+export const requirements = pgTable(
   "requirements",
   {
     id: text("id").primaryKey(),
@@ -48,19 +50,19 @@ export const requirements = sqliteTable(
     name: text("name").notNull(),
     district: text("district").notNull(),
     type: text("type").notNull(),
-    minArea: real("min_area").notNull(),
-    maxArea: real("max_area").notNull(),
-    budget: real("budget").notNull(),
+    minArea: doublePrecision("min_area").notNull(),
+    maxArea: doublePrecision("max_area").notNull(),
+    budget: doublePrecision("budget").notNull(),
     transaction: text("transaction").notNull(),
     parking: integer("parking").notNull(),
     months: integer("months").notNull(),
-    created: integer("created").notNull(),
-    updated: integer("updated").notNull(),
+    created: time("created"),
+    updated: time("updated"),
   },
   (t) => [index("requirements_owner_idx").on(t.owner)],
 );
 
-export const deals = sqliteTable(
+export const deals = pgTable(
   "deals",
   {
     id: text("id").primaryKey(),
@@ -70,33 +72,23 @@ export const deals = sqliteTable(
     requirementId: text("requirement_id").notNull(),
     stage: text("stage").notNull(),
     followup: text("followup").notNull().default(""),
-    collected: real("collected").notNull().default(0),
-    rewardRate: real("reward_rate").notNull().default(0),
-    created: integer("created").notNull(),
-    updated: integer("updated").notNull(),
+    collected: doublePrecision("collected").notNull().default(0),
+    rewardRate: doublePrecision("reward_rate").notNull().default(0),
+    created: time("created"),
+    updated: time("updated"),
   },
   (t) => [index("deals_owner_idx").on(t.owner)],
 );
 
 // Append-only audit trail of every create, update and delete.
-export const events = sqliteTable(
+export const events = pgTable(
   "events",
   {
     id: text("id").primaryKey(),
     owner: text("owner").notNull(),
     record: text("record").notNull(),
     action: text("action").notNull(),
-    created: integer("created").notNull(),
+    created: time("created"),
   },
   (t) => [index("events_owner_idx").on(t.owner)],
 );
-
-// Legacy JSON store from the first pilot. Kept so existing rows are not lost;
-// migration 0001 copies its contents into the tables above.
-export const records = sqliteTable("records", {
-  id: text("id").primaryKey(),
-  owner: text("owner").notNull(),
-  kind: text("kind").notNull(),
-  data: text("data").notNull(),
-  created: integer("created").notNull(),
-});

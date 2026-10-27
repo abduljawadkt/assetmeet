@@ -20,6 +20,7 @@ import {
 import { MarketPill, MatchRow, Score, VerificationPill, Wordmark } from "./brand";
 import RecordDialog from "./record-dialog";
 import { api, type Row, type Session } from "../lib/api";
+import { createClient } from "../lib/supabase/client";
 import { demoDeals, demoProperties, demoRequirements } from "../lib/demo";
 import { inr, priceLabel, sqft } from "../lib/format";
 import { match } from "../lib/matching";
@@ -79,11 +80,9 @@ const demoSession: Session = {
   authenticated: true,
   name: "Sample workspace",
   profile: { role: "Staff", name: "Sample workspace", organisation: "AssetMeet", phone: "", licenseNumber: "", licenseAuthority: "", verification: "Sample" },
-  signIn: "/?view=app",
-  signOut: "/",
 };
 
-export default function Workspace({ startRole, demo }: { startRole?: string; demo: boolean }) {
+export default function Workspace({ startRole, demo, signinFailed }: { startRole?: string; demo: boolean; signinFailed: boolean }) {
   const [session, setSession] = useState<Session | null>(demo ? demoSession : null);
   const [rows, setRows] = useState<Row[]>(demo ? [...demoProperties, ...demoRequirements, ...demoDeals] : []);
   const [loadError, setLoadError] = useState("");
@@ -117,7 +116,7 @@ export default function Workspace({ startRole, demo }: { startRole?: string; dem
         </p>
       </Centered>
     );
-  if (!session.authenticated) return <SignIn role={startRole} />;
+  if (!session.authenticated) return <SignIn role={startRole} failed={signinFailed} />;
   if (!session.profile)
     return (
       <Onboarding
@@ -132,6 +131,18 @@ export default function Workspace({ startRole, demo }: { startRole?: string; dem
   return <Shell session={session} rows={rows} setRows={setRows} demo={demo} />;
 }
 
+function SignOut({ demo, label }: { demo: boolean; label: string }) {
+  async function leave() {
+    if (!demo) await createClient().auth.signOut();
+    window.location.href = "/";
+  }
+  return (
+    <button className="btn btn-quiet btn-sm" onClick={leave}>
+      <LogOut size={16} aria-hidden="true" /> {label}
+    </button>
+  );
+}
+
 function Centered({ children }: { children: React.ReactNode }) {
   return (
     <main className="centered">
@@ -143,21 +154,62 @@ function Centered({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SignIn({ role }: { role?: string }) {
+function SignIn({ role, failed }: { role?: string; failed: boolean }) {
   const copy = (role && roleCopy[role]) || { title: "Sign in to AssetMeet", text: "Your requirements, properties and deals in one private workspace." };
   const back = `/?view=app${role ? `&role=${role}` : ""}`;
+  const [sentTo, setSentTo] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(failed ? "That sign-in link has expired or was already used. Request a new one." : "");
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const email = String(new FormData(e.currentTarget).get("email")).trim();
+    const { error: err } = await createClient().auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(back)}` },
+    });
+    setBusy(false);
+    if (err) setError(err.message);
+    else setSentTo(email);
+  }
+
+  if (sentTo)
+    return (
+      <Centered>
+        <h1>Check your email</h1>
+        <p>
+          We sent a sign-in link to <strong>{sentTo}</strong>. Open it on this device to continue. The link works once
+          and expires after an hour.
+        </p>
+        <button className="btn btn-quiet" onClick={() => setSentTo("")}>
+          Use a different email
+        </button>
+      </Centered>
+    );
+
   return (
     <Centered>
       <h1>{copy.title}</h1>
       <p>{copy.text}</p>
-      <div className="stack">
-        <a className="btn btn-primary btn-lg" href={`/signin-with-chatgpt?return_to=${encodeURIComponent(back)}`}>
-          Continue with ChatGPT <ArrowRight size={18} />
-        </a>
-        <Link className="btn btn-secondary btn-lg" href="/?view=app&demo=1">
-          Explore with sample data
-        </Link>
-      </div>
+      <form className="stack" onSubmit={submit}>
+        <label className="field">
+          <span className="field-label">Work email</span>
+          <input name="email" type="email" required autoComplete="email" inputMode="email" placeholder="you@company.com" />
+        </label>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn btn-primary btn-lg" disabled={busy}>
+          {busy ? "Sending link…" : "Email me a sign-in link"} <ArrowRight size={18} />
+        </button>
+      </form>
+      <Link className="btn btn-secondary btn-lg" href="/?view=app&demo=1">
+        Explore with sample data
+      </Link>
       <p className="small">
         <ShieldCheck size={16} aria-hidden="true" /> Your records are private to your account. Sample data is not saved.
       </p>
@@ -338,9 +390,7 @@ function Shell({
             <strong>{profile.name}</strong>
             <span>{staff ? "AssetMeet team" : role}</span>
           </p>
-          <a className="btn btn-quiet btn-sm" href={demo ? "/" : session.signOut}>
-            <LogOut size={16} aria-hidden="true" /> {demo ? "Leave sample data" : "Sign out"}
-          </a>
+          <SignOut demo={demo} label={demo ? "Leave sample data" : "Sign out"} />
         </div>
       </aside>
 
@@ -348,9 +398,7 @@ function Shell({
         <Link href="/" aria-label="AssetMeet home">
           <Wordmark />
         </Link>
-        <a className="btn btn-quiet btn-sm" href={demo ? "/" : session.signOut}>
-          <LogOut size={16} aria-hidden="true" /> {demo ? "Leave" : "Sign out"}
-        </a>
+        <SignOut demo={demo} label={demo ? "Leave" : "Sign out"} />
       </header>
 
       <main className="app-main" id="content">

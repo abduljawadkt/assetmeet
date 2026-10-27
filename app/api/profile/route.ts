@@ -1,18 +1,14 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { chatGPTSignInPath, chatGPTSignOutPath, getChatGPTUser } from "../../chatgpt-auth";
+import { getUser } from "../../../lib/supabase/server";
+import { sameOrigin } from "../../../lib/http";
 import { getDb } from "../../../db";
 import { events, profiles } from "../../../db/schema";
 import { profileInput } from "../../../lib/records";
 
-const links = {
-  signIn: chatGPTSignInPath("/?view=app"),
-  signOut: chatGPTSignOutPath("/"),
-};
-
 export async function GET() {
-  const user = await getChatGPTUser();
-  if (!user) return Response.json({ authenticated: false, profile: null, ...links });
+  const user = await getUser();
+  if (!user) return Response.json({ authenticated: false, profile: null });
   const [row] = await getDb().select().from(profiles).where(eq(profiles.owner, user.userId));
   const profile = row
     ? {
@@ -25,14 +21,13 @@ export async function GET() {
         verification: row.verification,
       }
     : null;
-  return Response.json({ authenticated: true, name: user.displayName, profile, ...links });
+  return Response.json({ authenticated: true, name: user.displayName, profile });
 }
 
 export async function POST(req: Request) {
-  const user = await getChatGPTUser();
+  const user = await getUser();
   if (!user) return Response.json({ error: "Sign in to create your profile" }, { status: 401 });
-  const origin = req.headers.get("origin");
-  if (origin && origin !== new URL(req.url).origin)
+  if (!sameOrigin(req))
     return Response.json({ error: "Invalid origin" }, { status: 403 });
   try {
     const parsed = profileInput.parse(await req.json());
@@ -47,19 +42,19 @@ export async function POST(req: Request) {
           ? "Submitted · not verified"
           : "Self-declared";
     const now = Date.now();
-    await db.batch([
-      db
+    await db.transaction(async (tx) => {
+      await tx
         .insert(profiles)
         .values({ ...value, owner: user.userId, verification, created: now, updated: now })
-        .onConflictDoUpdate({ target: profiles.owner, set: { ...value, verification, updated: now } }),
-      db.insert(events).values({
+        .onConflictDoUpdate({ target: profiles.owner, set: { ...value, verification, updated: now } });
+      await tx.insert(events).values({
         id: crypto.randomUUID(),
         owner: user.userId,
         record: `profile:${user.userId}`,
         action: "Profile saved",
         created: now,
-      }),
-    ]);
+      });
+    });
     return Response.json({ ...value, verification });
   } catch (e) {
     return Response.json(

@@ -64,7 +64,7 @@ const faqs: [string, React.ReactNode][] = [
   ],
   [
     "Do I need an account?",
-    "You sign in with your ChatGPT account. To look around first, open the workspace with sample data. Nothing you do there is saved.",
+    "Yes, so your records stay private. Sign in with your email address; we send you a one-time link, so there is no password to remember. To look around first, open the workspace with sample data. Nothing you do there is saved.",
   ],
 ];
 
