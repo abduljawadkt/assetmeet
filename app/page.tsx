@@ -1,2 +1,15 @@
-import AssetMeet from './ui';
-export default function Page(){return <AssetMeet/>}
+import Landing from "./landing";
+import Workspace from "./workspace";
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  if (params.view === "app") {
+    const role = typeof params.role === "string" ? params.role : undefined;
+    return <Workspace startRole={role} demo={params.demo === "1"} />;
+  }
+  return <Landing />;
+}

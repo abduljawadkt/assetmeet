@@ -1,13 +1,452 @@
-'use client';
-import {useState,useEffect} from 'react';
-import {ArrowRight,ChevronRight,Menu,X,Plus,Building2,Search,ShieldCheck,Check} from 'lucide-react';
-export function AssetWordmark(){return <span className="asset-wordmark" aria-label="AssetMeet"><span className="am-symbol" aria-hidden="true">am</span><span className="am-name"><span>asset</span><strong>meet</strong><small>.com</small></span></span>}
-const steps=[{title:'Add your property.',text:'A building, a plot, a space with potential. Record its location, size and availability. Your contribution stays connected.',icon:Building2,example:'Commercial building',detail:'Kozhikode · 22,000 sq.ft',tag:'Property recorded'},{title:'Tell us what fits.',text:'A clear requirement gives every search a purpose. Choose the location, area, budget and timing that work for you.',icon:Search,example:'Space for a supermarket',detail:'Kozhikode · 15,000–25,000 sq.ft',tag:'Requirement recorded'},{title:'Make the connection.',text:'Compare potential matches, review the details and confirm owner permission. People make the final decision.',icon:ShieldCheck,example:'A possible fit',detail:'Location and area align · Owner review next',tag:'Ready for review'}];
-export default function Landing({explore,requirement,workspace}:{explore:()=>void;requirement:()=>void;workspace:()=>void}){const [entered,setEntered]=useState(false),[entering,setEntering]=useState(false);useEffect(()=>{if(!entering)return;const timer=setTimeout(()=>setEntered(true),window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:650);return()=>clearTimeout(timer)},[entering]);useEffect(()=>{if(entered){document.getElementById('main-content')?.focus();window.scrollTo(0,0)}},[entered]);const [menu,setMenu]=useState(false),[step,setStep]=useState(0);const s=steps[step],Icon=s.icon;if(!entered)return <main className="ap-site"><section className={entering?"ap-hero ap-intro-screen is-entering":"ap-hero ap-intro-screen"} aria-label="Welcome to AssetMeet"><div className="ap-intro-content"><div className="ap-logo-intro"><AssetWordmark/></div><h1 className="ap-caption"><span className="ap-caption-line">Every building is an <em>asset.</em></span><span className="ap-caption-line">Every requirement is an <em>opportunity.</em></span><span className="ap-caption-line">Every verified match is a <em>potential transaction.</em></span></h1><button className="ap-button ap-enter-site" disabled={entering} onClick={()=>setEntering(true)}>See how it works <ArrowRight size={18}/></button></div></section></main>;return <main className="ap-site ap-site-reveal" id="top"><a className="ap-skip" href="#main-content">Skip to content</a><header className="ap-nav"><a href="#top" aria-label="AssetMeet home"><AssetWordmark/></a><nav className={menu?'open':''} aria-label="Website navigation"><a href="#possibilities" onClick={()=>setMenu(false)}>Possibilities</a><a href="#how-it-works" onClick={()=>setMenu(false)}>How it works</a><a href="#contributors" onClick={()=>setMenu(false)}>For professionals</a><a href="#questions" onClick={()=>setMenu(false)}>Questions</a></nav><div><button className="ap-button compact" onClick={workspace}>Get started</button><button className="ap-menu" aria-label={menu?'Close menu':'Open menu'} aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</button></div></header><div className="ap-preview-note">Discover the possibilities. Try the workspace with demo login. <button onClick={workspace}>Explore <ChevronRight size={14}/></button></div>
-<section className="ap-hero ap-main-hero" id="main-content" tabIndex={-1}><p className="ap-kicker">PROPERTY. MEET POSSIBILITY.</p><h1 className="ap-caption"><span className="ap-caption-line">Every building is an <em>asset.</em></span><span className="ap-caption-line">Every requirement is an <em>opportunity.</em></span><span className="ap-caption-line">Every verified match is a<br className="caption-break"/> <em>potential transaction.</em></span></h1><div className="ap-caption-visual" aria-hidden="true"><span><Building2 size={24} strokeWidth={1.5}/></span><i/><span><Search size={24} strokeWidth={1.5}/></span><i/><span><ShieldCheck size={24} strokeWidth={1.5}/></span></div><p className="ap-lead">Connect what you have with what someone needs.<br/>For owners, engineers and people looking for their next space.</p><div className="ap-actions"><button className="ap-button" onClick={explore}>I have a property</button><button className="ap-button secondary" onClick={requirement}>I need a property</button></div><a className="ap-link" href="#how-it-works">See how it works <ChevronRight size={18}/></a><figure className="ap-hero-photo"><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=90" alt="Illustrative contemporary home with open spaces and landscaped surroundings"/><figcaption><span>Every building is an asset.</span><small>Illustrative architecture</small></figcaption></figure></section>
-<section className="ap-section" id="possibilities"><div className="ap-section-title"><h2>Two ways in.<br/><span>One connected world.</span></h2><p>Start with a property.<br/>Or start with a requirement.</p></div><div className="ap-paths"><article><div className="ap-path-copy"><span>OWNERS · ENGINEERS · BUILDERS</span><h3>Your property.<br/>More possibilities.</h3><p>Give a building or plot a clear profile. Keep its details, source and availability together.</p><button className="ap-link" onClick={explore}>Add a property <ChevronRight size={18}/></button></div><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85" alt="Illustrative commercial building"/></article><article><div className="ap-path-copy"><span>BUYERS · TENANTS · BUSINESSES</span><h3>Your next space.<br/>Defined by you.</h3><p>Share the location, size and budget you need. Give every potential match a better brief.</p><button className="ap-link" onClick={requirement}>Post a requirement <ChevronRight size={18}/></button></div><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=85" alt="Illustrative bright workspace"/></article></div></section>
-<section className="ap-process" id="how-it-works"><div className="ap-section"><h2>Simple to start.<br/><span>Clear at every step.</span></h2><div className="ap-step-tabs" role="tablist" aria-label="How AssetMeet works">{['Add','Describe','Connect'].map((t,i)=><button key={t} id={`process-${i}`} role="tab" aria-controls="process-panel" aria-selected={step===i} onClick={()=>setStep(i)}><span>0{i+1}</span>{t}</button>)}</div><div className="ap-process-content" id="process-panel" role="tabpanel" aria-labelledby={`process-${step}`}><div key={s.title} className="ap-process-text"><h3>{s.title}</h3><p>{s.text}</p><button className="ap-link" onClick={step===1?requirement:explore}>Try it yourself <ArrowRight size={18}/></button></div><div className="ap-process-example"><Icon size={42} strokeWidth={1.3}/><small>ILLUSTRATIVE EXAMPLE</small><h4>{s.example}</h4><p>{s.detail}</p><span><Check size={15}/>{s.tag}</span></div></div></div></section>
-<section className="ap-professional" id="contributors"><div className="ap-section"><span className="ap-kicker">FOR ENGINEERS & BUILDERS</span><h2>Your knowledge.<br/><span>Your next opportunity.</span></h2><p className="ap-lead">You know what is being built.<br/>Connect that knowledge with the people who need it.</p><div className="ap-contribution"><div><b>01</b><h3>Introduce.</h3><p>Record a property through your professional profile.</p></div><div><b>02</b><h3>Stay connected.</h3><p>Keep your source credit attached as the opportunity develops.</p></div><div><b>03</b><h3>Earn when eligible.</h3><p>An eligible deal may lead to an agreed contributor reward.</p></div></div><button className="ap-button" onClick={explore}>Explore your workspace <ArrowRight size={17}/></button><small className="ap-reward-note">Potential additional income, subject to agreed terms and collected brokerage. Posting does not guarantee a deal or reward. Testing mode does not make payments.</small></div></section>
-<section className="ap-section ap-trust"><ShieldCheck size={45} strokeWidth={1.3}/><h2>A connection is a start.<br/><span>Verification comes next.</span></h2><p>Property information, owner permission and professional verification are tracked separately. A possible match needs human review before a site visit or transaction.</p></section>
-<section className="ap-questions ap-section" id="questions"><h2>A few good questions.</h2>{[['Who can list a property?','Owners, engineers and builders. Start with your role and add a building, plot or space. Professional details in the demo are illustrative, not verified.'],['Can I try it without an account?','Yes. Choose a path and select “Enter demo workspace”. You can create and edit fictional records without a Google account or password.'],['How does matching work?','The testing version compares type, transaction, location, area, budget, parking and readiness with explainable rules. It does not use a live AI model.'],['Can engineers earn additional income?','A contributor reward may be payable after an eligible introduction leads to a completed transaction and eligible brokerage is collected, under agreed terms. No income is guaranteed.'],['Where are my demo records saved?','Only in this browser tab’s session. They are not shared with other visitors. Use fictional details. This is a testing experience, not a live property marketplace.']].map(([q,a])=><details key={q}><summary>{q}<Plus size={20}/></summary><p>{a}</p></details>)}</section>
-<section className="ap-final"><h2>What brings you here?</h2><div className="ap-actions"><button className="ap-button" onClick={explore}>I have a property</button><button className="ap-button secondary" onClick={requirement}>I need a property</button></div></section><footer className="ap-footer"><AssetWordmark/><p>Every building is an asset. Every requirement is an opportunity.<br/>Every verified match is a potential transaction.</p><small>Testing preview · Fictional data only</small><a href="#top">Back to top ↑</a></footer></main>}
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Menu, X, ShieldCheck, Building2, HardHat } from "lucide-react";
+import { MatchRow, Placeholder, Wordmark, MarketPill, VerificationPill } from "./brand";
+import { demoProperties, demoRequirements } from "../lib/demo";
+import { districts } from "../lib/records";
+import { site } from "../lib/site-content";
+import { sqft, inrShort, months } from "../lib/format";
+
+const appLink = (role?: string) => `/?view=app${role ? `&role=${role}` : ""}`;
+
+const nav = [
+  ["#businesses", "For businesses"],
+  ["#owners", "For owners"],
+  ["#contributors", "For engineers & builders"],
+  ["#fees", "Fees"],
+  ["#faq", "FAQ"],
+];
+
+const searches = [
+  "Supermarkets and hypermarkets",
+  "Pharmacy chains",
+  "Bank and NBFC branches",
+  "Restaurants and quick-service chains",
+  "Showrooms and retail outlets",
+  "Warehouses and logistics hubs",
+];
+
+const faqs: [string, React.ReactNode][] = [
+  [
+    "Who pays AssetMeet?",
+    site.fees.business ? (
+      site.fees.business
+    ) : (
+      <>
+        Fees are agreed in writing before any search starts.{" "}
+        <Placeholder label="Fee summary for businesses and owners" />
+      </>
+    ),
+  ],
+  [
+    "Is my property shown on a public listing?",
+    "No. Properties are kept in a private workspace and are not published. A business sees an owner's details only after the owner has given permission and a mandate is signed.",
+  ],
+  [
+    "Which areas do you cover?",
+    site.activeDistricts ? (
+      site.activeDistricts
+    ) : (
+      <>
+        Properties and requirements can be recorded in all 14 districts of Kerala.{" "}
+        <Placeholder label="Districts where AssetMeet actively searches today" />
+      </>
+    ),
+  ],
+  [
+    "How is a match scored?",
+    "Each property is scored out of 100 against a requirement: location 25, area 20, budget 20, parking 15, possession timeline 10 and verification 10. Properties of the wrong type or deal type are left out. Every score lists its reasons, and a person reviews each match before anyone is contacted.",
+  ],
+  [
+    "Can I list a building that is still under construction?",
+    "Yes. You can record a property from the day it is sanctioned, while it is under construction, or when it is on hold. Construction, availability and verification are tracked separately, so a building can be recorded long before it is offered on the market.",
+  ],
+  [
+    "Do I need an account?",
+    "You sign in with your ChatGPT account. To look around first, open the workspace with sample data. Nothing you do there is saved.",
+  ],
+];
+
+export default function Landing() {
+  const [menu, setMenu] = useState(false);
+  const preview = demoRequirements[0];
+  const previewProps = demoProperties.slice(0, 2);
+  return (
+    <div className="site">
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      <header className="site-header">
+        <div className="container site-header-inner">
+          <Link href="/" className="wordmark-link" aria-label="AssetMeet home">
+            <Wordmark />
+          </Link>
+          <nav className={`site-nav ${menu ? "open" : ""}`} aria-label="Main">
+            {nav.map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setMenu(false)}>
+                {label}
+              </a>
+            ))}
+            <a className="site-nav-signin" href={appLink()}>
+              Sign in
+            </a>
+          </nav>
+          <div className="site-header-actions">
+            <a className="btn btn-quiet header-signin" href={appLink()}>
+              Sign in
+            </a>
+            <a className="btn btn-primary header-cta" href={appLink("Business")}>
+              <span className="long">Post a requirement</span>
+              <span className="short">Get started</span>
+            </a>
+            <button
+              className="btn btn-quiet menu-button"
+              aria-expanded={menu}
+              aria-label={menu ? "Close menu" : "Open menu"}
+              onClick={() => setMenu(!menu)}
+            >
+              {menu ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main id="main">
+        <section className="hero">
+          <div className="container hero-grid">
+            <div className="hero-copy">
+              <p className="eyebrow">Commercial property · Kerala</p>
+              <h1>Find commercial space in Kerala before it reaches the market.</h1>
+              <p className="lede">
+                Tell us the town, size and budget. We shortlist sites, including buildings still under
+                construction, and confirm the owner&rsquo;s permission before your site visit.
+              </p>
+              <div className="actions">
+                <a className="btn btn-primary btn-lg" href={appLink("Business")}>
+                  Post a space requirement <ArrowRight size={18} />
+                </a>
+                <a className="btn btn-secondary btn-lg" href={appLink("Owner")}>
+                  I own or know a property
+                </a>
+              </div>
+              <p className="hero-note">
+                <ShieldCheck size={16} aria-hidden="true" /> Owner details are shared only after the owner agrees.
+              </p>
+            </div>
+            <figure className="hero-preview" aria-label="Example shortlist">
+              <div className="preview-card">
+                <div className="preview-brief">
+                  <p className="label">Requirement</p>
+                  <p className="preview-title">{preview.name}</p>
+                  <p className="facts">
+                    {preview.district} · {sqft(preview.minArea)}–{sqft(preview.maxArea)} · up to{" "}
+                    {inrShort(preview.budget)} / month · {preview.parking} parking · within {preview.months} months
+                  </p>
+                </div>
+                <div className="preview-results">
+                  {previewProps.map((p) => (
+                    <MatchRow key={p.id} property={p} requirement={preview} />
+                  ))}
+                </div>
+              </div>
+              <figcaption>Example shortlist with fictional properties.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className="proof" aria-label="Track record">
+          <div className="container">
+            {site.proof ? (
+              <dl className="proof-list">
+                {site.proof.map((p) => (
+                  <div key={p.label}>
+                    <dt>{p.label}</dt>
+                    <dd>{p.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <Placeholder
+                label="Proof: client names or logos, deals closed, properties recorded"
+                hint="Only real figures you are allowed to publish. Edit lib/site-content.ts."
+              />
+            )}
+          </div>
+        </section>
+
+        <section className="section" id="businesses">
+          <div className="container split">
+            <div>
+              <p className="eyebrow">For businesses</p>
+              <h2>Your next location, shortlisted.</h2>
+              <p className="section-lede">
+                For expansion and real-estate teams that need specific space in specific towns, without weeks of
+                calls and wasted site visits.
+              </p>
+              <ol className="steps">
+                <li>
+                  <h3>Send your brief</h3>
+                  <p>District, property type, area range, budget, parking and when you need possession.</p>
+                </li>
+                <li>
+                  <h3>Review a scored shortlist</h3>
+                  <p>
+                    Every property is scored against your brief, with the reasons shown. That includes
+                    buildings that are not yet on the market.
+                  </p>
+                </li>
+                <li>
+                  <h3>Visit with permission in place</h3>
+                  <p>We confirm the owner&rsquo;s permission before any introduction or site visit.</p>
+                </li>
+              </ol>
+              <a className="btn btn-primary" href={appLink("Business")}>
+                Post a space requirement <ArrowRight size={18} />
+              </a>
+            </div>
+            <div className="spec">
+              <p className="label">What each shortlisted property tells you</p>
+              <dl className="spec-list">
+                <div>
+                  <dt>Fit score</dt>
+                  <dd>Out of 100, with the reasons behind it</dd>
+                </div>
+                <div>
+                  <dt>Construction</dt>
+                  <dd>Sanctioned, under construction, on hold or completed</dd>
+                </div>
+                <div>
+                  <dt>Availability</dt>
+                  <dd>Available, exploring, or not yet listed</dd>
+                </div>
+                <div>
+                  <dt>Verification</dt>
+                  <dd>From reported to owner confirmed, documents verified, or mandate signed</dd>
+                </div>
+                <div>
+                  <dt>Practical fit</dt>
+                  <dd>Area, rent or price, parking, and possession timeline</dd>
+                </div>
+              </dl>
+              <div className="searches">
+                <p className="label">Space we search for</p>
+                <ul>
+                  {searches.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section-tint" id="owners">
+          <div className="container split split-reverse">
+            <div className="status-sheet" aria-label="Example property record">
+              <div className="status-sheet-head">
+                <Building2 size={20} aria-hidden="true" />
+                <div>
+                  <p className="preview-title">{demoProperties[1].name}</p>
+                  <p className="facts">
+                    {demoProperties[1].locality}, {demoProperties[1].district} · {sqft(demoProperties[1].area)}
+                  </p>
+                </div>
+              </div>
+              <dl>
+                <div>
+                  <dt>Construction</dt>
+                  <dd>
+                    <span className="pill pill-neutral">{demoProperties[1].construction}</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Availability</dt>
+                  <dd>
+                    <MarketPill market={demoProperties[1].market} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>Verification</dt>
+                  <dd>
+                    <VerificationPill level={demoProperties[1].verification} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>Owner permission</dt>
+                  <dd>
+                    <span className="pill pill-warning">Pending</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Possession</dt>
+                  <dd>{months(demoProperties[1].months)}</dd>
+                </div>
+              </dl>
+              <p className="caption">Example record with a fictional property.</p>
+            </div>
+            <div>
+              <p className="eyebrow">For owners and developers</p>
+              <h2>Find a tenant before the building is finished.</h2>
+              <p className="section-lede">
+                Expanding businesses plan months ahead. Record your property early and it can be matched while
+                it is still being built.
+              </p>
+              <ul className="ticks">
+                <li>Record a building or plot from the day it is sanctioned.</li>
+                <li>You approve every introduction. Nothing is published.</li>
+                <li>Construction, availability and verification are tracked separately.</li>
+              </ul>
+              <a className="btn btn-primary" href={appLink("Owner")}>
+                List a property <ArrowRight size={18} />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="section band" id="contributors">
+          <div className="container">
+            <div className="band-head">
+              <HardHat size={28} aria-hidden="true" />
+              <p className="eyebrow">For engineers, architects and builders</p>
+              <h2>You know what is being built. Get credit for it.</h2>
+              <p className="section-lede">
+                Record a property you know about. Your name stays attached to it, and you earn a share of the fee
+                if it leads to a closed deal.
+              </p>
+            </div>
+            <ol className="band-steps">
+              <li>
+                <h3>Record the property</h3>
+                <p>Location, size, construction stage, and who the owner is.</p>
+              </li>
+              <li>
+                <h3>Your credit is recorded</h3>
+                <p>Your name is saved against the property from the first entry and stays with every deal.</p>
+              </li>
+              <li>
+                <h3>Earn when a deal closes</h3>
+                <p>
+                  {site.contributorReward ?? (
+                    <Placeholder label="Reward terms, for example a percentage of the collected fee" />
+                  )}
+                </p>
+              </li>
+            </ol>
+            <div className="band-foot">
+              <a className="btn btn-on-dark" href={appLink("Contributor")}>
+                Join as a contributor <ArrowRight size={18} />
+              </a>
+              <p>Rewards are paid only on fees actually collected, under terms agreed in writing.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="fees">
+          <div className="container">
+            <p className="eyebrow">Fees</p>
+            <h2>Agreed in writing before work starts.</h2>
+            <div className="fee-grid">
+              <div className="fee">
+                <h3>Businesses</h3>
+                {site.fees.business ? <p>{site.fees.business}</p> : <Placeholder label="Fee for businesses" hint="For example: one month's rent, payable on lease signing." />}
+              </div>
+              <div className="fee">
+                <h3>Owners</h3>
+                {site.fees.owner ? <p>{site.fees.owner}</p> : <Placeholder label="Fee for owners" />}
+              </div>
+              <div className="fee">
+                <h3>Contributors</h3>
+                <p>No fee. You earn a share when a property you recorded leads to a closed deal.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section-tint" id="faq">
+          <div className="container faq-layout">
+            <div>
+              <p className="eyebrow">FAQ</p>
+              <h2>Questions people ask first.</h2>
+            </div>
+            <div className="faq">
+              {faqs.map(([q, a]) => (
+                <details key={q}>
+                  <summary>{q}</summary>
+                  <div className="faq-answer">{a}</div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section closing">
+          <div className="container closing-inner">
+            <h2>Tell us what space you need.</h2>
+            <p className="section-lede">
+              A brief takes a few minutes. Once it is saved, the AssetMeet team scores recorded properties across{" "}
+              {districts.length} districts against it.
+            </p>
+            <div className="actions">
+              <a className="btn btn-primary btn-lg" href={appLink("Business")}>
+                Post a space requirement <ArrowRight size={18} />
+              </a>
+              <a className="btn btn-secondary btn-lg" href={appLink("Owner")}>
+                List a property
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="container footer-grid">
+          <div>
+            <Wordmark />
+            <p>Commercial property matching and brokerage for Kerala.</p>
+          </div>
+          <div>
+            <p className="label">Contact</p>
+            {site.contact.email || site.contact.phone || site.contact.whatsapp ? (
+              <ul className="footer-list">
+                {site.contact.phone && <li>{site.contact.phone}</li>}
+                {site.contact.whatsapp && (
+                  <li>
+                    <a href={site.contact.whatsapp}>WhatsApp</a>
+                  </li>
+                )}
+                {site.contact.email && (
+                  <li>
+                    <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <Placeholder label="Phone, WhatsApp and email" />
+            )}
+          </div>
+          <div>
+            <p className="label">Get started</p>
+            <ul className="footer-list">
+              <li>
+                <a href={appLink("Business")}>Post a requirement</a>
+              </li>
+              <li>
+                <a href={appLink("Owner")}>List a property</a>
+              </li>
+              <li>
+                <a href={appLink("Contributor")}>Join as a contributor</a>
+              </li>
+              <li>
+                <a href={appLink()}>Sign in</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="container footer-base">
+          <p>© {new Date().getFullYear()} AssetMeet. Examples on this page use fictional properties.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}

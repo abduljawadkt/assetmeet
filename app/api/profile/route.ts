@@ -1,5 +1,70 @@
-import {getChatGPTUser} from '../../chatgpt-auth';
-import {getDb} from '../../../db';import {records,events} from '../../../db/schema';import {eq,and} from 'drizzle-orm';import {z} from 'zod';
-const schema=z.object({engine:z.enum(['property','requirement']),name:z.string().trim().min(2).max(100),workspace:z.string().trim().min(2).max(100),role:z.enum(['Owner','Engineer','Builder','Buyer','Tenant','Business']),organisation:z.string().trim().max(160),licenseNumber:z.string().trim().max(100),licenseAuthority:z.string().trim().max(160),declaration:z.literal(true)}).superRefine((x,c)=>{if(!(x.engine==='property'?['Owner','Engineer','Builder']:['Buyer','Tenant','Business']).includes(x.role))c.addIssue({code:'custom',message:'Choose a role for this workspace'});if(['Engineer','Builder'].includes(x.role)&&(!x.licenseNumber||!x.licenseAuthority))c.addIssue({code:'custom',message:'Provide your licence or registration number and issuing authority'});});
-export async function GET(){const u=await getChatGPTUser();if(!u)return Response.json({authenticated:false,profiles:[]});const rows=await getDb().select().from(records).where(eq(records.owner,u.userId));return Response.json({authenticated:true,name:u.displayName,profiles:rows.filter(r=>r.kind==='profile').map(r=>JSON.parse(r.data))});}
-export async function POST(req:Request){const u=await getChatGPTUser();if(!u)return Response.json({error:'Sign in to create your workspace'},{status:401});const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)return Response.json({error:'Invalid origin'},{status:403});try{const value=schema.parse(await req.json());const data={...value,verification:['Engineer','Builder'].includes(value.role)?'Submitted · not verified':'Self-declared'};const id=`profile:${u.userId}:${value.engine}`;const db=getDb();await db.batch([db.insert(records).values({id,owner:u.userId,kind:'profile',data:JSON.stringify(data),created:Date.now()}).onConflictDoUpdate({target:records.id,set:{data:JSON.stringify(data)}}),db.insert(events).values({id:crypto.randomUUID(),owner:u.userId,record:id,action:'Profile saved',created:Date.now()})]);return Response.json(data);}catch(e){return Response.json({error:e instanceof z.ZodError?e.issues[0].message:'Unable to save profile'},{status:400});}}
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { chatGPTSignInPath, chatGPTSignOutPath, getChatGPTUser } from "../../chatgpt-auth";
+import { getDb } from "../../../db";
+import { events, profiles } from "../../../db/schema";
+import { profileInput } from "../../../lib/records";
+
+const links = {
+  signIn: chatGPTSignInPath("/?view=app"),
+  signOut: chatGPTSignOutPath("/"),
+};
+
+export async function GET() {
+  const user = await getChatGPTUser();
+  if (!user) return Response.json({ authenticated: false, profile: null, ...links });
+  const [row] = await getDb().select().from(profiles).where(eq(profiles.owner, user.userId));
+  const profile = row
+    ? {
+        role: row.role,
+        name: row.name,
+        organisation: row.organisation,
+        phone: row.phone,
+        licenseNumber: row.licenseNumber,
+        licenseAuthority: row.licenseAuthority,
+        verification: row.verification,
+      }
+    : null;
+  return Response.json({ authenticated: true, name: user.displayName, profile, ...links });
+}
+
+export async function POST(req: Request) {
+  const user = await getChatGPTUser();
+  if (!user) return Response.json({ error: "Sign in to create your profile" }, { status: 401 });
+  const origin = req.headers.get("origin");
+  if (origin && origin !== new URL(req.url).origin)
+    return Response.json({ error: "Invalid origin" }, { status: 403 });
+  try {
+    const parsed = profileInput.parse(await req.json());
+    const db = getDb();
+    const [existing] = await db.select().from(profiles).where(eq(profiles.owner, user.userId));
+    // Staff is granted in the database only; editing a staff profile must not drop it.
+    const value = existing?.role === "Staff" ? { ...parsed, role: "Staff" } : parsed;
+    const verification =
+      existing?.role === "Staff"
+        ? existing.verification
+        : value.role === "Contributor" && value.licenseNumber
+          ? "Submitted · not verified"
+          : "Self-declared";
+    const now = Date.now();
+    await db.batch([
+      db
+        .insert(profiles)
+        .values({ ...value, owner: user.userId, verification, created: now, updated: now })
+        .onConflictDoUpdate({ target: profiles.owner, set: { ...value, verification, updated: now } }),
+      db.insert(events).values({
+        id: crypto.randomUUID(),
+        owner: user.userId,
+        record: `profile:${user.userId}`,
+        action: "Profile saved",
+        created: now,
+      }),
+    ]);
+    return Response.json({ ...value, verification });
+  } catch (e) {
+    return Response.json(
+      { error: e instanceof z.ZodError ? e.issues[0].message : "Unable to save your profile" },
+      { status: 400 },
+    );
+  }
+}

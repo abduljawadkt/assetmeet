@@ -1,23 +1,38 @@
 # AssetMeet
 
-Private pilot for a Kerala property intelligence and brokerage platform.
+Commercial property matching and brokerage for Kerala. Expanding businesses post space requirements, owners and contributors (engineers, architects, builders) record properties, and the AssetMeet team scores matches and runs deals to closing.
 
 ## Implemented
-- Responsive website inspired by the supplied map-led reference; fictional examples are explicitly labelled.
-- ChatGPT identity and owner-isolated D1 persistence for properties, requirements and deals.
-- Independent construction, market and verification status; contributor attribution and marketing permission.
-- Weighted deterministic matching with explanations, transaction/type exclusions, private owner outreach classification.
-- Deal pipeline, follow-up dates, recorded brokerage and calculated contributor rewards.
-- Server validation, same-origin write check, owner checks and append-only creation/update audit events.
+- Public site aimed at expanding businesses, with sections for owners and contributors. Business facts that are not yet confirmed (fees, contact details, proof, contributor reward, active districts) render as visible "To add" placeholders from `lib/site-content.ts`.
+- Design system in `DESIGN.md`, implemented as CSS variables in `app/globals.css`.
+- ChatGPT sign-in, role onboarding (Business, Owner, Contributor) and a workspace backed by Cloudflare D1.
+- Roles:
+  - **Business**: own requirements, plus a Shortlists view of properties the team has matched to them. Owner contact is hidden until the property's verification is "Mandate signed"; the contributor's name is never shown.
+  - **Owner / Contributor**: own properties, plus an Interest view of deals involving them (business name hidden; contributors see their reward once fees are collected).
+  - **Staff** (the AssetMeet team): every property and requirement, matching, the deal pipeline and contributor rewards.
+- Weighted deterministic matching with reasons (`lib/matching.ts`), type and deal-type exclusions, and private-outreach flagging.
+- Server validation (`lib/records.ts`), same-origin write checks, owner scoping, the owner-permission rule on deal stages, delete protection for records linked to deals, and an append-only `events` audit table.
+- Read-only sample workspace at `/?view=app&demo=1` (fictional records, nothing saved).
 
-## Scope and launch gates
-This is a functional private pilot, not a completed multi-user production brokerage system. It intentionally does not claim live AI, verified inventory, customer counts or returns. It has no real customer data or external messaging.
+## Granting staff access
+Staff is never self-selected. After the person has signed in and created a profile, set their role in D1:
 
-Before a public business launch: implement organization membership and admin/staff/partner roles; owner/contact consent evidence; document upload and controlled sharing; property/unit relational modelling; duplicate and source dispute review; payout approvals and ledger; audit UI; backup/restore and retention operations; rate limiting and monitoring; user acceptance/security testing; configured email and AI provider; legal/business content and domain setup. Current records belong to one signed-in account. Do not change hosting to public as a substitute for implementing these controls.
+```sql
+UPDATE profiles SET role = 'Staff' WHERE owner = '<their user id>';
+```
 
-The illustrative map is not a geographic map. Photography is illustrative and remotely loaded from Unsplash. Demo records are not persisted and cannot create real deals. Live workspace starts empty.
+Their user id is the `owner` value on their profile row.
+
+## Before a public launch
+Fill in `lib/site-content.ts`; owner consent evidence and document uploads; duplicate and source dispute review; payout approvals and a ledger; audit UI; backup and retention; rate limiting and monitoring; security testing; email notifications; legal and business content; domain setup.
 
 ## Development
-Node >=22.13.0. Use the Sites helpers described in the plugin skill. `npm run dev` starts the local preview. `npm run db:generate` generates schema migrations. `node --experimental-strip-types --test lib/matching.test.ts` tests matching. `npx tsc --noEmit` checks types. `npm run build` creates a Worker bundle.
+Node >=22.13.0. `npm run dev` starts the local preview (local sign-in at `/signin-with-chatgpt`). `npm run db:generate` generates schema migrations. `node --experimental-strip-types --test lib/matching.test.ts` tests matching. `npx tsc --noEmit` checks types. `npm run build` creates a Worker bundle.
 
-D1 binding: DB. Schema migrations are in drizzle/. Hosted authentication is handled by Sites. No API secrets are included.
+D1 binding: `DB`. Migrations are in `drizzle/`. `0001_relational_tables` creates typed tables and copies any rows from the original `records` JSON table into them. The `records` table is kept but no longer written to. To apply migrations to the local preview database:
+
+```sh
+npx wrangler d1 migrations apply DB --local --persist-to .wrangler/state --config <a wrangler.json with the DB binding and migrations_dir: "drizzle">
+```
+
+Hosted authentication is handled by Sites. No API secrets are included.
