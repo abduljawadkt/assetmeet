@@ -1,13 +1,29 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Menu, X, ShieldCheck, Building2, HardHat, ClipboardList, Network, Handshake, Lightbulb } from "lucide-react";
-import { MatchRow, Placeholder, Wordmark, StatusPill, VerificationPill } from "./brand";
-import { PlanCards } from "./plan-cards";
-import { demoProperties, demoRequirements } from "../lib/demo";
+import {
+  ArrowRight,
+  Menu,
+  X,
+  ShieldCheck,
+  Building2,
+  HardHat,
+  ClipboardList,
+  Network,
+  Handshake,
+  Lightbulb,
+  EyeOff,
+  ListChecks,
+  FileSignature,
+  Lock,
+} from "lucide-react";
+import { Placeholder, Wordmark, StatusPill, VerificationPill } from "./brand";
+import LiveMatch from "./live-match";
+import { DealJourney, PlanFinder } from "./landing-extras";
+import { demoProperties } from "../lib/demo";
 import { districts } from "../lib/records";
 import { site } from "../lib/site-content";
-import { sqft, inrShort, months } from "../lib/format";
+import { sqft, months } from "../lib/format";
 
 const appLink = (role?: string) => `/?view=app${role ? `&role=${role}` : ""}`;
 
@@ -41,6 +57,14 @@ const engines: [string, string, string][] = [
   ["Digital marketplace", "Subscribers list properties, post requirements and find matches themselves.", "Affordable monthly plans"],
   ["Managed Deal Desk", "With an owner or client mandate, the AssetMeet team runs large transactions through to closing.", "Brokerage and sourcing, agreed in writing"],
   ["Demand to development", "When demand has no suitable building, land, developer and a project proposal are brought together.", "Feasibility and advisory"],
+];
+
+// Commitments the product enforces in code, not marketing claims.
+const commitments: [typeof Lock, string, string][] = [
+  [EyeOff, "Owner details stay private", "Released to a business only after the owner signs a mandate."],
+  [ListChecks, "Every score shows its reasons", "Location, size, budget, parking, timing and permission, out of 100."],
+  [FileSignature, "Fees only in writing", "No brokerage or advisory fee without a signed agreement."],
+  [Lock, "Nothing public by default", "A property is seen only if its owner chooses, and then anonymised."],
 ];
 
 const faqs: [string, React.ReactNode][] = [
@@ -99,8 +123,6 @@ const faqs: [string, React.ReactNode][] = [
 
 export default function Landing() {
   const [menu, setMenu] = useState(false);
-  const preview = demoRequirements[0];
-  const previewProps = demoProperties.slice(0, 2);
   return (
     <div className="site">
       <a className="skip-link" href="#main">
@@ -143,20 +165,26 @@ export default function Landing() {
 
       <main id="main">
         <section className="hero">
+          <svg className="hero-lines" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+            <path d="M-40 520 C 220 470, 360 600, 620 540 S 1010 380, 1260 430" />
+            <path d="M-40 430 C 240 380, 420 500, 660 450 S 1040 300, 1260 330" />
+            <path d="M720 -40 C 640 120, 820 220, 760 360 S 860 600, 980 700" />
+            <path className="brass" d="M880 -40 C 800 140, 980 260, 920 420 S 1020 620, 1140 700" />
+          </svg>
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Real estate intelligence marketplace · Kerala</p>
-              <h1>Find commercial space in Kerala before it reaches the market.</h1>
+              <p className="eyebrow">Real estate intelligence marketplace for Kerala</p>
+              <h1>Find commercial space before it reaches the market.</h1>
               <p className="lede">
-                Post the town, size and budget. AssetMeet matches you with owner-approved sites, including buildings
-                still under construction, closes large deals through its Deal Desk, and turns unmet demand into new
-                development.
+                Expanding businesses post a brief. Owners, engineers and builders record the buildings they know about,
+                including ones still under construction. AssetMeet scores the fit, confirms the owner&rsquo;s permission
+                and closes the deal with you.
               </p>
               <div className="actions">
-                <a className="btn btn-primary btn-lg" href={appLink("Business")}>
+                <a className="btn btn-on-dark btn-lg" href={appLink("Business")}>
                   Post a space requirement <ArrowRight size={18} />
                 </a>
-                <a className="btn btn-secondary btn-lg" href={appLink("Owner")}>
+                <a className="btn btn-ghost-dark btn-lg" href={appLink("Owner")}>
                   I own or know a property
                 </a>
               </div>
@@ -164,29 +192,23 @@ export default function Landing() {
                 <ShieldCheck size={16} aria-hidden="true" /> Owner details are shared only after the owner agrees.
               </p>
             </div>
-            <figure className="hero-preview" aria-label="Example shortlist">
-              <div className="preview-card">
-                <div className="preview-brief">
-                  <p className="label">Requirement</p>
-                  <p className="preview-title">{preview.name}</p>
-                  <p className="facts">
-                    {preview.district} · {sqft(preview.minArea)}–{sqft(preview.maxArea)} · up to{" "}
-                    {inrShort(preview.budget)} / month · {preview.parking} parking · within {preview.months} months
-                  </p>
-                </div>
-                <div className="preview-results">
-                  {previewProps.map((p) => (
-                    <MatchRow key={p.id} property={p} requirement={preview} />
-                  ))}
-                </div>
-              </div>
-              <figcaption>Example shortlist with fictional properties.</figcaption>
-            </figure>
+            <LiveMatch />
           </div>
         </section>
 
-        <section className="proof" aria-label="Track record">
+        <section className="commitments" aria-label="How AssetMeet protects you">
           <div className="container">
+            <ul className="commitment-list">
+              {commitments.map(([Icon, title, text]) => (
+                <li key={title}>
+                  <Icon size={22} aria-hidden="true" />
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
             {site.proof ? (
               <dl className="proof-list">
                 {site.proof.map((p) => (
@@ -401,9 +423,14 @@ export default function Landing() {
                 <div className="fee" key={title}>
                   <h3>{title}</h3>
                   <p>{text}</p>
-                  <p className="label">{earn}</p>
+                  <p className="engine-earn">{earn}</p>
                 </div>
               ))}
+            </div>
+            <div className="journey-block">
+              <h3 className="journey-heading">How the Deal Desk takes a match to a signed lease</h3>
+              <p className="section-lede">Pick a stage to see who handles it and what protects you there.</p>
+              <DealJourney />
             </div>
           </div>
         </section>
@@ -417,7 +444,7 @@ export default function Landing() {
               writing.
             </p>
             <div className="plans-block">
-              <PlanCards />
+              <PlanFinder />
             </div>
             <div className="fee-grid">
               <div className="fee">

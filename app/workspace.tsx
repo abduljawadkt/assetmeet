@@ -23,6 +23,7 @@ import {
 import { MatchRow, Pill, Reasons, Score, StatusPill, VerificationPill, Wordmark } from "./brand";
 import RecordDialog from "./record-dialog";
 import { PlanCards } from "./plan-cards";
+import { briefKey, savedBrief } from "../lib/brief";
 import { api, type Member, type Row, type Session } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { demoDeals, demoFees, demoMembers, demoOpportunities, demoProperties, demoRequirements } from "../lib/demo";
@@ -402,7 +403,7 @@ function Shell({
   const tabs = tabsFor[role] ?? tabsFor.Business;
   const [hash, setHash] = useHash();
   const tab: Tab = (tabs as string[]).includes(hash) ? (hash as Tab) : "overview";
-  const [dialog, setDialog] = useState<DialogState>(null);
+  const [dialog, setDialog] = useState<DialogState>(() => (demo || role !== "Business" ? null : savedBrief()));
   const [intro, setIntro] = useState<{ property: Property; requirement: Requirement } | null>(null);
   const [notice, setNotice] = useState("");
   const [selectedReq, setSelectedReq] = useState("");
@@ -416,6 +417,18 @@ function Shell({
       .then(setMembers)
       .catch(() => setMembers([]));
   }, [staff, demo]);
+
+  // A brief set in the landing page's Match Engine is removed from storage once read,
+  // and the Demand Bank opens behind its prefilled form.
+  useEffect(() => {
+    if (!dialog || dialog.kind !== "requirement" || dialog.record || role !== "Business") return;
+    try {
+      localStorage.removeItem(briefKey);
+    } catch {}
+    setHash("demands");
+    // Runs once when the workspace opens with a saved brief.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const properties = rows.filter((r): r is Property => r.kind === "property");
   const requirements = rows.filter((r): r is Requirement => r.kind === "requirement");

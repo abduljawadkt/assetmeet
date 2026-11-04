@@ -5,7 +5,7 @@ import { planFeatures, plans } from "../lib/rules";
 import { site } from "../lib/site-content";
 
 // Subscription plans and how they differ, shown on the landing page and in the Plan view.
-export function PlanCards({ current }: { current?: PlanName }) {
+export function PlanCards({ current, currentLabel = "Your plan" }: { current?: PlanName; currentLabel?: string }) {
   const paidPlans = ["Connect", "Professional", "Corporate"] as const;
   return (
     <>
@@ -13,8 +13,8 @@ export function PlanCards({ current }: { current?: PlanName }) {
         {paidPlans.map((p) => {
           const q = plans[p];
           return (
-            <div key={p} className={`plan-card ${p === "Professional" ? "plan-card-featured" : ""} ${current === p ? "plan-card-current" : ""}`}>
-              <p className="label">{p}</p>
+            <div key={p} className={`plan-card ${p === "Professional" && !current ? "plan-card-featured" : ""} ${current === p ? "plan-card-current" : ""}`}>
+              <p className="plan-name">{p}</p>
               <p className="plan-price">
                 {inr(q.price)}
                 <span> per month</span>
@@ -33,7 +33,7 @@ export function PlanCards({ current }: { current?: PlanName }) {
                   {q.logins} user {q.logins === 1 ? "login" : "logins"}
                 </li>
               </ul>
-              {current === p && <Pill tone="brand">Your plan</Pill>}
+              {current === p && <Pill tone="brand">{currentLabel}</Pill>}
             </div>
           );
         })}

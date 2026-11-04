@@ -26,7 +26,8 @@ All values live as CSS variables in `app/globals.css`. Pages use the variable na
 | `--laterite-soft` | `#f8e9e1` | Background for the laterite badge |
 | `--warning` / `--warning-soft` | `#8a5a00` / `#fbf0d9` | Pending permission, overdue follow-ups |
 | `--danger` / `--danger-soft` | `#b42318` / `#fdecea` | Errors and destructive actions |
-| `--ink-band` | `#13231c` | The one dark band on the landing page (contributors) |
+| `--ink-band` | `#13231c` | Dark bands on the landing page: the hero (after the brand document cover) and contributors |
+| `--brass` | `#b8965a` | Hairline accent only: the hero eyebrow rule, one plot-boundary line, the Deal Desk guard rule |
 
 Text on `--surface` and `--bg` meets 4.5:1. White text on `--brand` meets 4.5:1.
 
@@ -66,3 +67,10 @@ Text on `--surface` and `--bg` meets 4.5:1. White text on `--brand` meets 4.5:1.
 
 - Icons: `lucide-react`, 16–20px, stroke 1.75, always next to a text label (or with `aria-label`).
 - No stock photography. Visuals are the product itself: real interface components rendered with clearly labelled fictional examples.
+
+## Landing page interactions
+
+- **Hero: live Match Engine** (`app/live-match.tsx`). The one bold moment. Visitors set district, space type, size, rent or budget and timing; fictional sample properties (`lib/sample-market.ts`) are scored with the real `lib/matching.ts`. Pre-market supply is called out in laterite. "Save this brief" keeps the brief in this browser and opens it prefilled in the Demand Bank after sign-in.
+- **Deal Desk journey** (`app/landing-extras.tsx`). A six-stage tablist (arrow keys work) showing who handles each stage and what protects the client there.
+- **Plan finder.** Three sliders recommend the smallest plan that covers the visitor's numbers.
+- Eyebrows are sentence case, not tracked capitals. Motion is limited to the score rings and the journey panel, and respects reduced motion.
