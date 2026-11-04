@@ -18,4 +18,8 @@ export const site = {
   proof: null as { label: string; value: string }[] | null,
   // Districts where AssetMeet actively searches today.
   activeDistricts: null as string | null,
+  // Subscription prices and quotas live in lib/rules.ts (plans). The document
+  // calls them illustrative pilot prices to test with real subscribers.
+  pricingNote:
+    "Pilot pricing, billed monthly. Prices exclude GST and processing fees. Brokerage, sourcing and advisory fees are separate and agreed in writing for each mandate.",
 };

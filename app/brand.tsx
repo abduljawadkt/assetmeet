@@ -24,17 +24,23 @@ export function Placeholder({ label, hint }: { label: string; hint?: string }) {
   );
 }
 
-// "Not yet listed" is the one place the laterite accent appears.
-export function MarketPill({ market }: { market: string }) {
-  if (market === "Unknown" || market === "Exploring")
-    return <span className="pill pill-laterite">Not yet listed</span>;
-  if (market === "Sold / leased") return <span className="pill pill-muted">Sold / leased</span>;
-  return <span className="pill pill-brand">{market}</span>;
+// Pre-market supply (mapped, or confirmed by the owner but not yet mandated) is
+// the one place the laterite accent appears.
+export function StatusPill({ status }: { status: string }) {
+  if (status === "Mapped" || status === "Owner confirmed")
+    return <span className="pill pill-laterite">{status === "Mapped" ? "Mapped · not listed" : "Owner confirmed"}</span>;
+  if (status === "Closed" || status === "Withdrawn") return <span className="pill pill-muted">{status}</span>;
+  return <span className="pill pill-brand">{status}</span>;
 }
 
 export function VerificationPill({ level }: { level: string }) {
-  const tone = level === "Mandate signed" ? "pill-brand" : level === "Reported" ? "pill-muted" : "pill-neutral";
-  return <span className={`pill ${tone}`}>{level}</span>;
+  const tone =
+    level === "Verified" ? "pill-brand" : level === "Issue found" ? "pill-danger" : level === "Under review" ? "pill-warning" : "pill-muted";
+  return <span className={`pill ${tone}`}>{level === "Issue found" ? "On hold · issue found" : `Documents: ${level.toLowerCase()}`}</span>;
+}
+
+export function Pill({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "brand" | "warning" | "danger" | "muted" | "laterite" }) {
+  return <span className={`pill pill-${tone}`}>{children}</span>;
 }
 
 // Reasons from lib/matching.ts that mean the criterion is met.
@@ -84,7 +90,7 @@ export function MatchRow({ property, requirement }: { property: Property; requir
       <div className="match-row-body">
         <div className="match-row-head">
           <h3>{property.name}</h3>
-          <MarketPill market={property.market} />
+          <StatusPill status={property.status} />
         </div>
         <p className="facts">
           {property.locality ? `${property.locality}, ` : ""}

@@ -325,6 +325,10 @@ dd {
   background: var(--warning-soft);
   color: var(--warning);
 }
+.pill-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
 .pill-neutral {
   background: var(--bg);
   color: var(--ink-2);
@@ -1086,9 +1090,23 @@ select {
   background: var(--surface);
   color: var(--ink);
 }
+textarea {
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+  resize: vertical;
+}
 input:not([type="checkbox"], [type="radio"]):hover,
-select:hover {
+select:hover,
+textarea:hover {
   border-color: var(--muted);
+}
+textarea:focus-visible {
+  outline-offset: 0;
+  border-color: var(--brand);
 }
 input:focus-visible,
 select:focus-visible {
@@ -1243,6 +1261,153 @@ select:focus-visible {
   color: var(--ink);
   font: 700 var(--fs-2xl) / 1.2 var(--font-display);
   font-variant-numeric: tabular-nums;
+}
+.metrics small {
+  display: block;
+  margin-top: var(--s-1);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.panel > .metrics > div {
+  background: var(--bg);
+  border-color: transparent;
+}
+
+/* Opportunity stage track and fee stack */
+.stage-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  list-style: none;
+}
+.stage-track li {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--line);
+}
+.stage-track li.done {
+  background: var(--laterite);
+}
+.fee-stack {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.fee-stack td,
+.fee-stack th {
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  font-weight: 400;
+}
+.fee-stack td + td {
+  padding-left: var(--s-2);
+}
+.fee-stack .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.plan-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+.plan-form select,
+.plan-form input {
+  width: auto;
+  min-height: 36px;
+}
+.member-match .card-foot {
+  justify-content: flex-end;
+}
+
+/* Subscription plans */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+.plan-card {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  padding: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.plan-card-featured {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+}
+.plan-card-current {
+  box-shadow: 0 0 0 2px var(--brand);
+}
+.plan-price {
+  color: var(--ink);
+  font: 700 var(--fs-3xl) / 1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+.plan-price span {
+  color: var(--muted);
+  font: 400 var(--fs-sm) / 1 var(--font-body);
+}
+.plan-card ul {
+  display: grid;
+  gap: var(--s-1);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: var(--fs-sm);
+}
+.plans-block {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+/* Landing: five workspaces */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+  list-style: none;
+}
+.workspace-grid li {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  padding: var(--s-5) var(--s-4);
+  background: var(--bg);
+  border-radius: var(--r-md);
+  color: var(--brand-strong);
+}
+.workspace-grid h3 {
+  color: var(--ink);
+  font-size: var(--fs-md);
+}
+.workspace-grid p {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+@media (max-width: 1023px) {
+  .workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 899px) {
+  .plan-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 479px) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .panel,
@@ -1555,7 +1720,8 @@ select:focus-visible {
     z-index: 20;
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    grid-auto-columns: minmax(64px, 1fr);
+    overflow-x: auto;
     padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
     background: var(--surface);
     border-top: 1px solid var(--line);
@@ -1582,7 +1748,7 @@ select:focus-visible {
     color: var(--brand);
   }
   .board {
-    grid-template-columns: repeat(6, minmax(240px, 80%));
+    grid-template-columns: repeat(7, minmax(240px, 80%));
     margin-inline: calc(-1 * var(--gutter));
     padding-inline: var(--gutter);
   }

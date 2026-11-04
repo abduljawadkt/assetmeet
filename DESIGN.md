@@ -22,7 +22,7 @@ All values live as CSS variables in `app/globals.css`. Pages use the variable na
 | `--brand` | `#0b7a52` | Primary buttons, links, selected navigation |
 | `--brand-strong` | `#075c3d` | Hover and pressed state of brand elements |
 | `--brand-soft` | `#e4f2ea` | Selected rows, score backgrounds, soft badges |
-| `--laterite` | `#a3441d` | Accent, used **only** for "Not yet listed" (pre-market supply). Named after the laterite stone Kerala buildings are made of |
+| `--laterite` | `#a3441d` | Accent, used **only** for pre-market supply ("Mapped · not listed", "Owner confirmed") and development opportunities. Named after the laterite stone Kerala buildings are made of |
 | `--laterite-soft` | `#f8e9e1` | Background for the laterite badge |
 | `--warning` / `--warning-soft` | `#8a5a00` / `#fbf0d9` | Pending permission, overdue follow-ups |
 | `--danger` / `--danger-soft` | `#b42318` / `#fdecea` | Errors and destructive actions |

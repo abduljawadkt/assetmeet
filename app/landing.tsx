@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Menu, X, ShieldCheck, Building2, HardHat } from "lucide-react";
-import { MatchRow, Placeholder, Wordmark, MarketPill, VerificationPill } from "./brand";
+import { ArrowRight, Menu, X, ShieldCheck, Building2, HardHat, ClipboardList, Network, Handshake, Lightbulb } from "lucide-react";
+import { MatchRow, Placeholder, Wordmark, StatusPill, VerificationPill } from "./brand";
+import { PlanCards } from "./plan-cards";
 import { demoProperties, demoRequirements } from "../lib/demo";
 import { districts } from "../lib/records";
 import { site } from "../lib/site-content";
@@ -13,8 +14,9 @@ const appLink = (role?: string) => `/?view=app${role ? `&role=${role}` : ""}`;
 const nav = [
   ["#businesses", "For businesses"],
   ["#owners", "For owners"],
-  ["#contributors", "For engineers & builders"],
-  ["#fees", "Fees"],
+  ["#contributors", "For contributors"],
+  ["#how", "How it works"],
+  ["#plans", "Plans"],
   ["#faq", "FAQ"],
 ];
 
@@ -27,6 +29,20 @@ const searches = [
   "Warehouses and logistics hubs",
 ];
 
+const workspaces: [typeof Building2, string, string][] = [
+  [Building2, "Asset Bank", "Existing buildings, land and spaces: sanctioned, ongoing and completed."],
+  [ClipboardList, "Demand Bank", "Buy, lease, rent, expansion, corporate and investor requirements."],
+  [Network, "Match Engine", "Location, area, budget, technical fit, possession and owner permission."],
+  [Handshake, "Deal Desk", "Qualified introduction, site visit, negotiation, agreement and closure."],
+  [Lightbulb, "Opportunity Bank", "Unmet demand turned into site search, feasibility and new projects."],
+];
+
+const engines: [string, string, string][] = [
+  ["Digital marketplace", "Subscribers list properties, post requirements and find matches themselves.", "Affordable monthly plans"],
+  ["Managed Deal Desk", "With an owner or client mandate, the AssetMeet team runs large transactions through to closing.", "Brokerage and sourcing, agreed in writing"],
+  ["Demand to development", "When demand has no suitable building, land, developer and a project proposal are brought together.", "Feasibility and advisory"],
+];
+
 const faqs: [string, React.ReactNode][] = [
   [
     "Who pays AssetMeet?",
@@ -34,14 +50,27 @@ const faqs: [string, React.ReactNode][] = [
       site.fees.business
     ) : (
       <>
-        Fees are agreed in writing before any search starts.{" "}
+        Subscribers pay a monthly plan for tools and intelligence. Brokerage, sourcing and advisory fees are separate:
+        they apply only under a mandate agreed in writing before the work starts.{" "}
         <Placeholder label="Fee summary for businesses and owners" />
       </>
     ),
   ],
   [
     "Is my property shown on a public listing?",
-    "No. Properties are kept in a private workspace and are not published. A business sees an owner's details only after the owner has given permission and a mandate is signed.",
+    "No. Properties are private unless you choose to let subscribers see them, and then only anonymised: location, size, price and readiness, never your name or contact. A business sees an owner's details only after the owner has given permission and signed a mandate.",
+  ],
+  [
+    "Does a Corporate plan unlock owner contacts?",
+    "No plan does. AssetMeet sells data intelligence, not contact databases. Owner details, client identities and confidential offers are released only with permission, and every access is checked and logged.",
+  ],
+  [
+    "Does a subscription commit me to paying brokerage?",
+    "No. Your subscription covers the tools. AssetMeet represents you in a deal only if you opt in and sign a separate written agreement.",
+  ],
+  [
+    "What if no property fits my requirement?",
+    "That is not the end of the search. Once your requirement is confirmed, the team can look for land or an expandable building and prepare a development proposal. Any feasibility, design or project work is quoted and agreed separately.",
   ],
   [
     "Which areas do you cover?",
@@ -56,11 +85,11 @@ const faqs: [string, React.ReactNode][] = [
   ],
   [
     "How is a match scored?",
-    "Each property is scored out of 100 against a requirement: location 25, area 20, budget 20, parking 15, possession timeline 10 and verification 10. Properties of the wrong type or deal type are left out. Every score lists its reasons, and a person reviews each match before anyone is contacted.",
+    "Each property is scored out of 100 against a requirement: location 25, area 20, budget 20, parking 15, possession timeline 10 and owner confirmation 10. Properties of the wrong type or deal type, and closed or withdrawn ones, are left out. Every score lists its reasons, and a person reviews each match before anyone is contacted.",
   ],
   [
     "Can I list a building that is still under construction?",
-    "Yes. You can record a property from the day it is sanctioned, while it is under construction, or when it is on hold. Construction, availability and verification are tracked separately, so a building can be recorded long before it is offered on the market.",
+    "Yes. You can record a property from the day it is sanctioned, while it is under construction, or when it is on hold. Construction, status and document checks are tracked separately, so a building can be recorded long before it is offered on the market. Basic submission is free.",
   ],
   [
     "Do I need an account?",
@@ -116,11 +145,12 @@ export default function Landing() {
         <section className="hero">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Commercial property · Kerala</p>
+              <p className="eyebrow">Real estate intelligence marketplace · Kerala</p>
               <h1>Find commercial space in Kerala before it reaches the market.</h1>
               <p className="lede">
-                Tell us the town, size and budget. We shortlist sites, including buildings still under
-                construction, and confirm the owner&rsquo;s permission before your site visit.
+                Post the town, size and budget. AssetMeet matches you with owner-approved sites, including buildings
+                still under construction, closes large deals through its Deal Desk, and turns unmet demand into new
+                development.
               </p>
               <div className="actions">
                 <a className="btn btn-primary btn-lg" href={appLink("Business")}>
@@ -217,12 +247,12 @@ export default function Landing() {
                   <dd>Sanctioned, under construction, on hold or completed</dd>
                 </div>
                 <div>
-                  <dt>Availability</dt>
-                  <dd>Available, exploring, or not yet listed</dd>
+                  <dt>Status</dt>
+                  <dd>Mapped, owner confirmed, mandated, available or in negotiation</dd>
                 </div>
                 <div>
-                  <dt>Verification</dt>
-                  <dd>From reported to owner confirmed, documents verified, or mandate signed</dd>
+                  <dt>Documents</dt>
+                  <dd>Title, permits, zoning and registration, checked independently</dd>
                 </div>
                 <div>
                   <dt>Practical fit</dt>
@@ -261,13 +291,13 @@ export default function Landing() {
                   </dd>
                 </div>
                 <div>
-                  <dt>Availability</dt>
+                  <dt>Status</dt>
                   <dd>
-                    <MarketPill market={demoProperties[1].market} />
+                    <StatusPill status={demoProperties[1].status} />
                   </dd>
                 </div>
                 <div>
-                  <dt>Verification</dt>
+                  <dt>Documents</dt>
                   <dd>
                     <VerificationPill level={demoProperties[1].verification} />
                   </dd>
@@ -293,9 +323,10 @@ export default function Landing() {
                 it is still being built.
               </p>
               <ul className="ticks">
-                <li>Record a building or plot from the day it is sanctioned.</li>
-                <li>You approve every introduction. Nothing is published.</li>
-                <li>Construction, availability and verification are tracked separately.</li>
+                <li>Record a building or plot from the day it is sanctioned. Basic submission is free.</li>
+                <li>You approve every introduction. Nothing is public unless you choose, and never your contact.</li>
+                <li>Construction, status and document checks are tracked separately.</li>
+                <li>For a confidential sale or lease, a private mandate releases information in stages.</li>
               </ul>
               <a className="btn btn-primary" href={appLink("Owner")}>
                 List a property <ArrowRight size={18} />
@@ -309,55 +340,104 @@ export default function Landing() {
             <div className="band-head">
               <HardHat size={28} aria-hidden="true" />
               <p className="eyebrow">For engineers, architects and builders</p>
-              <h2>You know what is being built. Get credit for it.</h2>
+              <h2>You know what is being built. Get paid for verified contribution.</h2>
               <p className="section-lede">
-                Record a property you know about. Your name stays attached to it, and you earn a share of the fee
-                if it leads to a closed deal.
+                Record properties you know about, free. Your contribution is attributed to you from the first entry,
+                and rewards follow the work you can verify.
               </p>
             </div>
             <ol className="band-steps">
               <li>
-                <h3>Record the property</h3>
-                <p>Location, size, construction stage, and who the owner is.</p>
-              </li>
-              <li>
-                <h3>Your credit is recorded</h3>
-                <p>Your name is saved against the property from the first entry and stays with every deal.</p>
-              </li>
-              <li>
-                <h3>Earn when a deal closes</h3>
+                <h3>Data contributor</h3>
                 <p>
-                  {site.contributorReward ?? (
-                    <Placeholder label="Reward terms, for example a percentage of the collected fee" />
-                  )}
+                  Asset discovery: structured property records, submitted with the owner&rsquo;s permission. A basic
+                  record grows the network but does not earn a deal commission by itself.
                 </p>
+              </li>
+              <li>
+                <h3>Qualified sourcer</h3>
+                <p>
+                  Mandate secured: you are the verified original introducer, with the owner&rsquo;s consent, and the
+                  record leads to a real opportunity.{" "}
+                  {site.contributorReward ?? <Placeholder label="Reward terms, for example a percentage of the collected brokerage" />}
+                </p>
+              </li>
+              <li>
+                <h3>Deal partner</h3>
+                <p>Execution support: documented negotiation, site visits or closing support under an agreed arrangement.</p>
               </li>
             </ol>
             <div className="band-foot">
               <a className="btn btn-on-dark" href={appLink("Contributor")}>
                 Join as a contributor <ArrowRight size={18} />
               </a>
-              <p>Rewards are paid only on fees actually collected, under terms agreed in writing.</p>
+              <p>
+                Rewards are paid only on brokerage actually collected, after review, under signed terms. Duplicate records
+                are merged into one master asset and the verified original source is credited, not simply the first upload.
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="section" id="fees">
+        <section className="section" id="how">
           <div className="container">
-            <p className="eyebrow">Fees</p>
-            <h2>Agreed in writing before work starts.</h2>
+            <p className="eyebrow">How AssetMeet works</p>
+            <h2>One network. Five connected workspaces.</h2>
+            <p className="section-lede">
+              More contributors bring better asset data. Better data draws more demand, which makes better matches and
+              more closed deals.
+            </p>
+            <ul className="workspace-grid">
+              {workspaces.map(([Icon, title, text]) => (
+                <li key={title}>
+                  <Icon size={22} aria-hidden="true" />
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="fee-grid">
+              {engines.map(([title, text, earn]) => (
+                <div className="fee" key={title}>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                  <p className="label">{earn}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section section-tint" id="plans">
+          <div className="container">
+            <p className="eyebrow">Plans and fees</p>
+            <h2>Entry price low. Network value high.</h2>
+            <p className="section-lede">
+              A subscription gives you the tools and the intelligence. Brokerage needs a separate mandate, agreed in
+              writing.
+            </p>
+            <div className="plans-block">
+              <PlanCards />
+            </div>
             <div className="fee-grid">
               <div className="fee">
-                <h3>Businesses</h3>
-                {site.fees.business ? <p>{site.fees.business}</p> : <Placeholder label="Fee for businesses" hint="For example: one month's rent, payable on lease signing." />}
+                <h3>Free access</h3>
+                <p>
+                  Engineers, architects, builders and owners can record properties free. Businesses can post one demand
+                  and receive a shortlist from the team.
+                </p>
+              </div>
+              <div className="fee">
+                <h3>Deal Desk</h3>
+                {site.fees.business ? (
+                  <p>{site.fees.business}</p>
+                ) : (
+                  <Placeholder label="Brokerage for sale and lease mandates" hint="Agreed per mandate. There is no assumed standard rate." />
+                )}
               </div>
               <div className="fee">
                 <h3>Owners</h3>
                 {site.fees.owner ? <p>{site.fees.owner}</p> : <Placeholder label="Fee for owners" />}
-              </div>
-              <div className="fee">
-                <h3>Contributors</h3>
-                <p>No fee. You earn a share when a property you recorded leads to a closed deal.</p>
               </div>
             </div>
           </div>
@@ -384,8 +464,8 @@ export default function Landing() {
           <div className="container closing-inner">
             <h2>Tell us what space you need.</h2>
             <p className="section-lede">
-              A brief takes a few minutes. Once it is saved, the AssetMeet team scores recorded properties across{" "}
-              {districts.length} districts against it.
+              A brief takes a few minutes. Once it is saved, the Match Engine scores recorded properties across{" "}
+              {districts.length} districts against it, and the team qualifies it.
             </p>
             <div className="actions">
               <a className="btn btn-primary btn-lg" href={appLink("Business")}>
@@ -403,7 +483,10 @@ export default function Landing() {
         <div className="container footer-grid">
           <div>
             <Wordmark />
-            <p>Commercial property matching and brokerage for Kerala.</p>
+            <p>
+              An affordable property intelligence marketplace for Kerala that turns matches into transactions, and unmet
+              demand into development opportunities.
+            </p>
           </div>
           <div>
             <p className="label">Contact</p>

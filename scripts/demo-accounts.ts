@@ -7,17 +7,19 @@
 // Re-running creates nothing new for emails that already exist.
 import { randomBytes, randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
-import { demoDeals, demoProperties, demoRequirements } from "../lib/demo.ts";
+import { demoDeals, demoFees, demoOpportunities, demoProperties, demoRequirements } from "../lib/demo.ts";
 
 const domain = process.env.DEMO_EMAIL_DOMAIN ?? "assetmeet.com";
 const password = () => randomBytes(9).toString("base64url");
 const q = (v: unknown) => (v === null ? "NULL" : typeof v === "number" || typeof v === "boolean" ? String(v) : `'${String(v).replace(/'/g, "''")}'`);
 
+// The demo business and owner get paid plans for a year so self-service matching can be shown.
+const inAYear = new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10);
 const accounts = [
-  { key: "admin", role: "Staff", name: "AssetMeet Admin", organisation: "AssetMeet" },
-  { key: "business", role: "Business", name: "Demo Business", organisation: "Demo Retail Pvt Ltd" },
-  { key: "owner", role: "Owner", name: "Demo Owner", organisation: "" },
-  { key: "contributor", role: "Contributor", name: "Demo Engineer", organisation: "Demo Associates" },
+  { key: "admin", role: "Staff", name: "AssetMeet Admin", organisation: "AssetMeet", plan: "Free", planUntil: "" },
+  { key: "business", role: "Business", name: "Demo Business", organisation: "Demo Retail Pvt Ltd", plan: "Professional", planUntil: inAYear },
+  { key: "owner", role: "Owner", name: "Demo Owner", organisation: "", plan: "Connect", planUntil: inAYear },
+  { key: "contributor", role: "Contributor", name: "Demo Engineer", organisation: "Demo Associates", plan: "Free", planUntil: "" },
 ].map((a) => ({ ...a, id: randomUUID(), email: `${a.key}@${domain}`, password: password() }));
 const by = Object.fromEntries(accounts.map((a) => [a.key, a]));
 
@@ -28,7 +30,7 @@ for (const a of accounts) {
   sql.push(
     `INSERT INTO "user" (id, name, email, email_verified) VALUES (${q(a.id)}, ${q(a.name)}, ${q(a.email)}, true) ON CONFLICT (email) DO NOTHING;`,
     `INSERT INTO account (id, account_id, provider_id, user_id, password) SELECT ${q(randomUUID())}, id, 'credential', id, ${q(hash)} FROM "user" WHERE email = ${q(a.email)} AND id = ${q(a.id)} ON CONFLICT (id) DO NOTHING;`,
-    `INSERT INTO profiles (owner, role, name, organisation, verification, created, updated) SELECT id, ${q(a.role)}, ${q(a.name)}, ${q(a.organisation)}, 'Demo account', ${now}, ${now} FROM "user" WHERE email = ${q(a.email)} AND id = ${q(a.id)} ON CONFLICT (owner) DO NOTHING;`,
+    `INSERT INTO profiles (owner, role, name, organisation, verification, plan, plan_until, created, updated) SELECT id, ${q(a.role)}, ${q(a.name)}, ${q(a.organisation)}, 'Demo account', ${q(a.plan)}, ${q(a.planUntil)}, ${now}, ${now} FROM "user" WHERE email = ${q(a.email)} AND id = ${q(a.id)} ON CONFLICT (owner) DO NOTHING;`,
   );
 }
 
@@ -36,21 +38,34 @@ for (const a of accounts) {
 const ids: Record<string, string> = {};
 demoProperties.forEach((p, i) => {
   ids[p.id] = randomUUID();
-  const owner = i === 1 ? by.contributor.id : by.owner.id;
+  const owner = i === 1 || i === 5 ? by.contributor.id : by.owner.id;
   sql.push(
-    `INSERT INTO properties (id, owner, name, district, locality, type, area, price, transaction, construction, market, verification, parking, months, consent, source, owner_contact, created, updated) SELECT ${[ids[p.id], owner, p.name, p.district, p.locality, p.type, p.area, p.price, p.transaction, p.construction, p.market, p.verification, p.parking, p.months, p.consent, p.source.replace("Sample", "Demo"), p.ownerContact.replace("Sample", "Demo")].map(q).join(", ")}, ${now}, ${now} WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(owner)});`,
+    `INSERT INTO properties (id, owner, name, district, locality, type, area, price, transaction, construction, status, verification, visibility, parking, months, consent, source, owner_contact, created, updated) SELECT ${[ids[p.id], owner, p.name, p.district, p.locality, p.type, p.area, p.price, p.transaction, p.construction, p.status, p.verification, p.visibility, p.parking, p.months, p.consent, p.source.replace("Sample", "Demo"), p.ownerContact.replace("Sample", "Demo")].map(q).join(", ")}, ${now}, ${now} WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(owner)});`,
   );
 });
 demoRequirements.forEach((r) => {
   ids[r.id] = randomUUID();
   sql.push(
-    `INSERT INTO requirements (id, owner, name, district, type, min_area, max_area, budget, transaction, parking, months, created, updated) SELECT ${[ids[r.id], by.business.id, r.name, r.district, r.type, r.minArea, r.maxArea, r.budget, r.transaction, r.parking, r.months].map(q).join(", ")}, ${now}, ${now} WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(by.business.id)});`,
+    `INSERT INTO requirements (id, owner, name, district, type, min_area, max_area, budget, transaction, parking, months, status, created, updated) SELECT ${[ids[r.id], by.business.id, r.name, r.district, r.type, r.minArea, r.maxArea, r.budget, r.transaction, r.parking, r.months, r.status].map(q).join(", ")}, ${now}, ${now} WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(by.business.id)});`,
   );
 });
+const day = (offset: number) => new Date(now + offset * 864e5).toISOString().slice(0, 10);
+const staffOnly = `WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(by.admin.id)})`;
 demoDeals.forEach((d, i) => {
-  const followup = new Date(now + (i === 0 ? 7 : -3) * 864e5).toISOString().slice(0, 10);
+  ids[d.id] = randomUUID();
   sql.push(
-    `INSERT INTO deals (id, owner, name, property_id, requirement_id, stage, followup, collected, reward_rate, created, updated) SELECT ${[randomUUID(), by.admin.id, d.name, ids[d.propertyId], ids[d.requirementId], d.stage, followup, d.collected, d.rewardRate].map(q).join(", ")}, ${now}, ${now} WHERE EXISTS (SELECT 1 FROM "user" WHERE id = ${q(by.admin.id)});`,
+    `INSERT INTO deals (id, owner, name, property_id, requirement_id, stage, lead_source, value, mandate_signed, mandate_party, exclusivity, trigger, opt_in, assignee, next_action, followup, notes, source_tier, reward_rate, payout_status, created, updated) SELECT ${[ids[d.id], by.admin.id, d.name, ids[d.propertyId], ids[d.requirementId], d.stage, d.leadSource, d.value, d.mandateSigned, d.mandateParty, d.exclusivity, d.trigger, d.optIn, d.assignee, d.nextAction, day(i === 0 ? 7 : -3), d.notes, d.sourceTier, d.rewardRate, d.payoutStatus].map(q).join(", ")}, ${now}, ${now} ${staffOnly};`,
+  );
+});
+demoOpportunities.forEach((o) => {
+  ids[o.id] = randomUUID();
+  sql.push(
+    `INSERT INTO opportunities (id, owner, name, requirement_id, property_id, stage, assignee, next_action, followup, notes, created, updated) SELECT ${[ids[o.id], by.admin.id, o.name, ids[o.requirementId], o.propertyId ? ids[o.propertyId] : "", o.stage, o.assignee, o.nextAction, day(8), o.notes].map(q).join(", ")}, ${now}, ${now} ${staffOnly};`,
+  );
+});
+demoFees.forEach((f) => {
+  sql.push(
+    `INSERT INTO fees (id, owner, name, stream, link_kind, link_id, payer, trigger, status, amount, agreement, disclosed, invoice, collected_on, created, updated) SELECT ${[randomUUID(), by.admin.id, f.name, f.stream, f.linkKind, f.linkId ? ids[f.linkId] : "", f.payer, f.trigger, f.status, f.amount, f.agreement, f.disclosed, f.invoice, f.collectedOn].map(q).join(", ")}, ${now}, ${now} ${staffOnly};`,
   );
 });
 sql.push("COMMIT;");

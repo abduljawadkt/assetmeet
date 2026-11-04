@@ -1,10 +1,25 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { z } from "zod";
 import { getUser } from "../../../lib/auth";
 import { sameOrigin } from "../../../lib/http";
 import { getDb } from "../../../db";
-import { events, profiles } from "../../../db/schema";
+import { deals, events, profiles, properties, requirements } from "../../../db/schema";
 import { profileInput } from "../../../lib/records";
+import { effectivePlan, isActiveProperty, isActiveRequirement, monthStart, quotaFor } from "../../../lib/rules";
+
+// How much of the plan this account is using.
+async function usageFor(owner: string) {
+  const db = getDb();
+  const [p, r, d] = await Promise.all([
+    db.select({ status: properties.status }).from(properties).where(eq(properties.owner, owner)),
+    db.select({ status: requirements.status }).from(requirements).where(eq(requirements.owner, owner)),
+    db
+      .select({ id: deals.id })
+      .from(deals)
+      .where(and(eq(deals.owner, owner), gte(deals.created, monthStart(Date.now())))),
+  ]);
+  return { assets: p.filter(isActiveProperty).length, demands: r.filter(isActiveRequirement).length, matches: d.length };
+}
 
 export async function GET() {
   const user = await getUser();
@@ -19,9 +34,20 @@ export async function GET() {
         licenseNumber: row.licenseNumber,
         licenseAuthority: row.licenseAuthority,
         verification: row.verification,
+        plan: row.plan,
+        planUntil: row.planUntil,
       }
     : null;
-  return Response.json({ authenticated: true, name: user.displayName, profile });
+  if (!row) return Response.json({ authenticated: true, name: user.displayName, profile });
+  const plan = effectivePlan(row.plan, row.planUntil, new Date().toISOString().slice(0, 10));
+  return Response.json({
+    authenticated: true,
+    name: user.displayName,
+    profile,
+    plan,
+    quota: quotaFor(plan, row.role),
+    usage: await usageFor(user.userId),
+  });
 }
 
 export async function POST(req: Request) {
@@ -55,7 +81,7 @@ export async function POST(req: Request) {
         created: now,
       });
     });
-    return Response.json({ ...value, verification });
+    return Response.json({ ...value, verification, plan: existing?.plan ?? "Free", planUntil: existing?.planUntil ?? "" });
   } catch (e) {
     return Response.json(
       { error: e instanceof z.ZodError ? e.issues[0].message : "Unable to save your profile" },
