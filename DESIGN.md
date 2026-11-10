@@ -18,7 +18,7 @@ Change the reference files only to fix a defect; put new styles in `app/workspac
 
 ## Flow
 
-1. **Landing** (`app/landing.tsx`, `app/landing.css`): the reference's style, simplified. No splash screen. Hero with the tagline, one plain sentence, the two choices and three reassurances; How it works (three visible steps); Start where you are (one block per audience); the dark professionals band; three commitments; questions; final choice; footer with useful links.
+1. **Landing** (`app/landing.tsx`, `app/landing.css`): a short story in five full-screen chapters, after the flow of micro.company: welcome; Every building is an asset; Every requirement is an opportunity; Every verified match is a potential transaction; Where would you like to begin (owner, business, engineer, then sign in and sample workspace). One idea and one short line per screen, a fixed dot rail showing the current chapter, gentle snap between chapters, and each chapter easing in (off when reduced motion is set; content is never hidden without JavaScript). No photos.
 2. **Entry** (`app/entry.tsx`): "I have a property" / "I need a property", email sign-in link (or password for team-created accounts), then role and profile. The engine guide animation sits beside it.
 3. **Workspace** (`app/workspace.tsx`): sidebar shell.
    - Members: Dashboard, My properties, My requirements, Introductions, Market view, Plan.
