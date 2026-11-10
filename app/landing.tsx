@@ -1,15 +1,31 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, Building2, Handshake, HardHat, Search } from "lucide-react";
-import { AssetWordmark } from "./brand";
+import { ArrowDown, Building2, Compass, Hammer, HardHat, LogIn, Search, Volume2 } from "lucide-react";
 
-// A short story in five screens: one idea per screen, little text, a dot
-// rail showing where you are, and each screen easing in as it arrives.
+// Landing page inspired by micro.company: five quiet full-screen chapters,
+// monochrome, a serif for chapter titles, a dot rail showing where you are,
+// and each chapter easing in. AssetMeet's own words and brand throughout.
 
 const start = (engine: "property" | "requirement") => `/?view=app&engine=${engine}`;
+const chapters = ["Welcome", "AssetMeet", "Our promise", "Start here", "Get in touch"];
 
-const chapters = ["Welcome", "Asset", "Opportunity", "Transaction", "Get started"];
+const promises: [string, React.ReactNode][] = [
+  ["I.", <><b>List what you have</b>, even before it is built.</>],
+  ["II.", <><b>Post what you need</b>, and we look for the fit.</>],
+  ["III.", <>Every match <b>shows its reasons</b>.</>],
+  ["IV.", <><b>Nothing is shared</b> until the owner says yes.</>],
+  ["V.", <><b>Fees only in writing</b>, agreed before any work.</>],
+];
+
+const doors = [
+  { icon: Building2, title: "I have a property", text: "List a building, plot or space, free", href: start("property") },
+  { icon: Search, title: "I need a property", text: "Post the space you are looking for", href: start("requirement") },
+  { icon: HardHat, title: "I’m an engineer", text: "Introduce properties, earn when eligible", href: start("property") },
+  { icon: Hammer, title: "I’m a builder", text: "Record projects while they are built", href: start("property") },
+  { icon: Compass, title: "Look around", text: "Open a sample workspace", href: "/?view=app&demo=1" },
+  { icon: LogIn, title: "Sign in", text: "Continue with email or Google", href: "/?view=app&mode=signin" },
+];
 
 export default function Landing() {
   const root = useRef<HTMLElement>(null);
@@ -17,10 +33,10 @@ export default function Landing() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const slides = [...(root.current?.querySelectorAll<HTMLElement>(".fl-slide") ?? [])];
+    const slides = [...(root.current?.querySelectorAll<HTMLElement>(".mc-slide") ?? [])];
     const seen = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("is-in")),
-      { threshold: 0.25 },
+      { threshold: 0.2 },
     );
     const current = new IntersectionObserver(
       (entries) => {
@@ -32,7 +48,7 @@ export default function Landing() {
       seen.observe(s);
       current.observe(s);
     });
-    // Content is visible without JavaScript; the easing only starts once this runs.
+    // Content is visible without JavaScript; the easing starts only once this runs.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
     return () => {
@@ -42,132 +58,126 @@ export default function Landing() {
   }, []);
 
   function go(i: number) {
-    const slide = root.current?.querySelectorAll<HTMLElement>(".fl-slide")[i];
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    slide?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    root.current?.querySelectorAll<HTMLElement>(".mc-slide")[i]?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }
+
+  function say() {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance("Asset Meet");
+    u.lang = "en-IN";
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
   }
 
   return (
-    <main className={`fl ${ready ? "fl-ready" : ""}`} ref={root}>
-      <a className="fl-skip" href="#get-started">
-        Skip to get started
+    <main className={`mc ${ready ? "mc-ready" : ""}`} ref={root}>
+      <a className="mc-skip" href="#start-here">
+        Skip to start here
       </a>
-      <header className="fl-top">
-        <Link
-          href="/"
-          aria-label="AssetMeet home"
-          onClick={(e) => {
-            e.preventDefault();
-            go(0);
-          }}
-        >
-          <AssetWordmark />
-        </Link>
-        <nav aria-label="Account">
-          <Link href="/?view=app&mode=signin">Sign in</Link>
-          <Link className="fl-pill" href={start("property")}>
-            Get started
-          </Link>
-        </nav>
-      </header>
+      <nav className="mc-account" aria-label="Account">
+        <Link href="/?view=app&mode=signin">Sign in</Link>
+      </nav>
 
-      <nav className="fl-dots" aria-label="Sections">
+      <nav className="mc-dots" aria-label="Sections">
         {chapters.map((c, i) => (
           <button key={c} aria-label={c} aria-current={active === i ? "true" : undefined} onClick={() => go(i)} />
         ))}
       </nav>
 
-      <section className="fl-slide fl-intro" aria-label="Welcome">
-        <div className="fl-in">
-          <span className="fl-mark" aria-hidden="true">
+      <section className="mc-slide" aria-label="Welcome">
+        <div className="mc-in">
+          <span className="mc-mark" aria-hidden="true">
             am
           </span>
-          <h1>
-            <b>AssetMeet.</b> Property matching for Kerala.
+          <h1 className="mc-hello">
+            <b>Namaskaram.</b> Welcome to AssetMeet
           </h1>
         </div>
-        <button className="fl-next" onClick={() => go(1)} aria-label="Next section">
-          <ArrowDown size={18} />
+        <button className="mc-next" onClick={() => go(1)} aria-label="Next section">
+          <ArrowDown size={16} />
         </button>
       </section>
 
-      <section className="fl-slide" aria-labelledby="ch-asset">
-        <div className="fl-in">
-          <span className="fl-icon">
-            <Building2 size={26} strokeWidth={1.5} aria-hidden="true" />
-          </span>
-          <h2 id="ch-asset">
-            Every building is an <em>asset.</em>
+      <section className="mc-slide" aria-labelledby="mc-define">
+        <div className="mc-in">
+          <h2 id="mc-define" className="mc-serif">
+            AssetMeet
           </h2>
-          <p>List a building, plot or space, even before it is finished. It stays private until the owner says yes.</p>
+          <p className="mc-say">
+            / ˈa-sət mēt /
+            <button onClick={say} aria-label="Hear it pronounced">
+              <Volume2 size={16} />
+            </button>
+          </p>
+          <p className="mc-quote">
+            “A property network for Kerala, where every building is an asset, every requirement is an opportunity, and every
+            verified match is a potential transaction.”
+          </p>
         </div>
       </section>
 
-      <section className="fl-slide" aria-labelledby="ch-opportunity">
-        <div className="fl-in">
-          <span className="fl-icon">
-            <Search size={26} strokeWidth={1.5} aria-hidden="true" />
-          </span>
-          <h2 id="ch-opportunity">
-            Every requirement is an <em>opportunity.</em>
+      <section className="mc-slide" aria-labelledby="mc-promise">
+        <div className="mc-in">
+          <h2 id="mc-promise" className="mc-serif">
+            Our Promise
           </h2>
-          <p>Tell us the town, size, budget and timing you need. We look for the fit, including space not yet on the market.</p>
+          <ol className="mc-promises">
+            {promises.map(([n, line]) => (
+              <li key={n}>
+                <span className="mc-roman">{n}</span> {line}
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      <section className="fl-slide" aria-labelledby="ch-transaction">
-        <div className="fl-in">
-          <span className="fl-icon">
-            <Handshake size={26} strokeWidth={1.5} aria-hidden="true" />
-          </span>
-          <h2 id="ch-transaction">
-            Every verified match is a <em>potential transaction.</em>
+      <section className="mc-slide" id="start-here" aria-labelledby="mc-start">
+        <div className="mc-in mc-wide">
+          <h2 id="mc-start" className="mc-serif">
+            Start Here
           </h2>
-          <p>We score each match and show why it fits, then introduce both sides once the owner agrees.</p>
-        </div>
-      </section>
-
-      <section className="fl-slide fl-doors" id="get-started" aria-labelledby="ch-start">
-        <div className="fl-in">
-          <h2 id="ch-start">Where would you like to begin?</h2>
-          <ul>
-            <li>
-              <Link href={start("property")}>
-                <Building2 size={28} strokeWidth={1.5} aria-hidden="true" />
-                <b>I have a property</b>
-                <span>List it, free</span>
-              </Link>
-            </li>
-            <li>
-              <Link href={start("requirement")}>
-                <Search size={28} strokeWidth={1.5} aria-hidden="true" />
-                <b>I need a property</b>
-                <span>Post what you need</span>
-              </Link>
-            </li>
-            <li>
-              <Link href={start("property")}>
-                <HardHat size={28} strokeWidth={1.5} aria-hidden="true" />
-                <b>I’m an engineer</b>
-                <span>Introduce properties, earn when eligible</span>
-              </Link>
-            </li>
+          <ul className="mc-doors">
+            {doors.map((d) => {
+              const Icon = d.icon;
+              return (
+                <li key={d.title}>
+                  <Link href={d.href}>
+                    <span className="mc-door-icon">
+                      <Icon size={24} strokeWidth={1.8} aria-hidden="true" />
+                    </span>
+                    <b>{d.title}</b>
+                    <span>{d.text}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
-          <div className="fl-links">
-            <p>
-              Already a member?{" "}
-              <Link href="/?view=app&mode=signin">
-                Sign in <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            </p>
-            <p>
-              Looking around first?{" "}
-              <Link href="/?view=app&demo=1">
-                Open a sample workspace <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            </p>
-          </div>
-          <small className="fl-foot">Free to start · Private by default · Fees only in writing</small>
+        </div>
+      </section>
+
+      <section className="mc-slide mc-close" aria-label="Get in touch">
+        <div className="mc-in">
+          <p>
+            Own a building, plot or space in Kerala?
+            <br />
+            <Link href={start("property")}>List it on AssetMeet →</Link>
+          </p>
+          <p>
+            Looking for space for your business?
+            <br />
+            <Link href={start("requirement")}>Post a requirement →</Link>
+          </p>
+          <p>
+            Engineer, architect or builder?
+            <br />
+            <Link href={start("property")}>Join as a professional →</Link>
+          </p>
+          <p>
+            Already with us? <Link href="/?view=app&mode=signin">Sign in</Link>
+          </p>
+          <small>© {new Date().getFullYear()} AssetMeet · Kerala</small>
         </div>
       </section>
     </main>
