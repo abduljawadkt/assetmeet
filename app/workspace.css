@@ -263,3 +263,205 @@
     margin-left: 0;
   }
 }
+
+/* ------------------------------------------------------------------ Responsive
+   Breakpoints: 1250 (narrow laptop), 1023 (tablet), 760 (phone, the reference's
+   own breakpoint), 420 and 360 (small phones). */
+
+/* An odd fact closes the grid at full width instead of leaving an empty cell. */
+.am-facts div:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* Narrow laptops: board tables drop the price column so every other column fits. */
+@media (max-width: 1250px) {
+  .am-board-table {
+    min-width: 0;
+  }
+  .am-board-table th:nth-child(5),
+  .am-board-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+/* Tablets: four summary cards become two per row. */
+@media (max-width: 1100px) {
+  .md-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablets and phones: tables become labelled cards, so no column is cut off. */
+@media (max-width: 1023px) {
+  .md-table-wrap {
+    overflow: visible;
+  }
+  .md-table,
+  .md-plan-table table {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .md-table thead,
+  .md-plan-table thead {
+    display: none;
+  }
+  .md-table tbody,
+  .md-plan-table tbody {
+    display: block;
+  }
+  .md-table tr,
+  .md-plan-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f3f0;
+  }
+  .md-table tr:last-child,
+  .md-plan-table tr:last-child {
+    border-bottom: 0;
+  }
+  .md-table td,
+  .md-plan-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .md-table td:first-child,
+  .md-plan-table td:first-child,
+  .am-cell-action {
+    grid-column: 1 / -1;
+  }
+  .md-table td:first-child,
+  .md-plan-table td:first-child {
+    font-weight: 600;
+  }
+  .md-table td[data-label]::before,
+  .md-plan-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: #8a998e;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .am-board-table th:nth-child(5),
+  .am-board-table td:nth-child(5) {
+    display: block;
+  }
+  .md-table .md-count {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .md-table .md-row-action {
+    padding: 0;
+  }
+  /* Two-column key/value table on the Plan screen stays side by side. */
+  .am-kv tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .md-plan-table tr.am-current {
+    border-radius: 12px;
+    background: #eef6f0;
+  }
+  .md-plan-table tr.am-current td {
+    background: none;
+  }
+  .am-kv td:first-child {
+    grid-column: auto;
+    font-weight: 400;
+  }
+  .am-match-filter {
+    flex-wrap: wrap;
+  }
+  .am-match-filter .am-wide-select {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  /* The Deal Desk board: two stages per row on tablets. */
+  .am-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  /* Phones: one stage per row; empty stages collapse to their heading. */
+  .am-pipeline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .am-pipeline > section {
+    min-height: 0;
+  }
+  .md-table tr,
+  .md-plan-table tr {
+    padding: 16px;
+  }
+  .am-plan-form {
+    width: 100%;
+  }
+  .am-plan-form select,
+  .am-plan-form input {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+  .am-inline-actions {
+    gap: 18px;
+  }
+  .hw-panel .hw-actions {
+    flex-wrap: wrap;
+  }
+  .am-intro div {
+    flex-wrap: wrap;
+  }
+  .am-intro div button {
+    flex: 1 1 auto;
+  }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+  .ap-step-tabs {
+    gap: 6px;
+  }
+  .ap-step-tabs button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 11px 6px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+  .am-long {
+    display: none;
+  }
+  .md-create-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .md-create-actions svg {
+    flex-shrink: 0;
+  }
+  .md-create-actions button {
+    justify-content: center;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    white-space: nowrap;
+    font-size: 12px !important;
+  }
+}
+@media (max-width: 360px) {
+  .md-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .md-table tr,
+  .md-plan-table tr {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .am-kv tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

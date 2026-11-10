@@ -395,7 +395,13 @@ function Shell({ session, rows, setRows, demo, refresh }: { session: Session; ro
             <AssetWordmark />
           </Link>
           <button className="outline" onClick={signOut}>
-            {demo ? "Exit sample workspace" : "Sign out"}
+            {demo ? (
+              <>
+                Exit<span className="am-long">sample workspace</span>
+              </>
+            ) : (
+              "Sign out"
+            )}
           </button>
         </header>
         <section className={`hw md-shell ${inline ? "md-split" : ""}`}>
@@ -577,7 +583,7 @@ function StatusTag({ b }: { b: Board }) {
 function BoardTable({ rows, kind, ctx }: { rows: Board[]; kind: string; ctx: Ctx }) {
   return (
     <div className="md-table-wrap">
-      <table className="md-table">
+      <table className="md-table am-board-table">
         <thead>
           <tr>
             <th>{kind}</th>
@@ -607,24 +613,24 @@ function BoardTable({ rows, kind, ctx }: { rows: Board[]; kind: string; ctx: Ctx
                     </span>
                   </button>
                 </td>
-                <td>
+                <td data-label="Status">
                   <StatusTag b={b} />
                   <small className="md-status-help">{b.help}</small>
                 </td>
-                <td>
+                <td data-label="Matches">
                   <button className="md-count" onClick={() => ctx.open(b, "Matches")}>
                     {fits}
                     <small>View matches</small>
                   </button>
                 </td>
-                <td>
+                <td data-label="Introductions">
                   <button className="md-count" onClick={() => ctx.open(b, "Introductions")}>
                     {intros}
                     <small>{intros ? "With the Deal Desk" : "None yet"}</small>
                   </button>
                 </td>
-                <td>{priceLabel(b.price, b.transaction)}</td>
-                <td>
+                <td data-label={kind === "Property" ? "Price" : "Budget"}>{priceLabel(b.price, b.transaction)}</td>
+                <td className="am-cell-action">
                   <button className="md-row-action" onClick={() => ctx.open(b, pending ? "Details" : fits ? "Matches" : "Details")}>
                     {pending ? "Add permission" : fits ? "Review matches" : "Manage"} <ArrowRight size={13} />
                   </button>
@@ -1184,12 +1190,12 @@ function BoardCard({ b, ctx }: { b: Board; ctx: Ctx }) {
           <button onClick={() => ctx.open(b, "Introductions")}>
             <Handshake size={14} />
             <b>{intros}</b>
-            <small>Introductions</small>
+            <small>Introduced</small>
           </button>
           <span>
             <Calendar size={14} />
-            <b>{b.kind === "asset" ? (rec as Property).months : (rec as Requirement).months}</b>
-            <small>{b.kind === "asset" ? "Months to ready" : "Needed in (mo)"}</small>
+            <b>{b.kind === "asset" ? (rec as Property).months : (rec as Requirement).months} mo</b>
+            <small>{b.kind === "asset" ? "Ready in" : "Needed in"}</small>
           </span>
         </div>
         <div className="hw-card-actions">
@@ -1327,7 +1333,7 @@ function PlanScreen(ctx: Ctx & { planUntil: string }) {
       <p>
         You are on the <b>{plan}</b> plan{plan !== "Free" && planUntil ? `, paid until ${planUntil}` : ""}. Plans change your tools and limits. They never change match scores, and no plan unlocks owner contacts.
       </p>
-      <div className="md-plan-table">
+      <div className="md-plan-table am-kv">
         <table>
           <tbody>
             <tr>
@@ -1370,10 +1376,10 @@ function PlanScreen(ctx: Ctx & { planUntil: string }) {
                 <td>
                   {p} · ₹{plans[p].price.toLocaleString("en-IN")}
                 </td>
-                <td>{plans[p].assets}</td>
-                <td>{plans[p].demands}</td>
-                <td>{plans[p].matches}</td>
-                <td>{plans[p].logins}</td>
+                <td data-label="Properties">{plans[p].assets}</td>
+                <td data-label="Requirements">{plans[p].demands}</td>
+                <td data-label="Saved matches / month">{plans[p].matches}</td>
+                <td data-label="Logins">{plans[p].logins}</td>
               </tr>
             ))}
           </tbody>
@@ -1395,7 +1401,9 @@ function PlanScreen(ctx: Ctx & { planUntil: string }) {
               <tr key={f}>
                 <td>{f}</td>
                 {cells.map((c, i) => (
-                  <td key={i}>{c}</td>
+                  <td key={i} data-label={paid[i]}>
+                    {c}
+                  </td>
                 ))}
               </tr>
             ))}
@@ -1422,7 +1430,7 @@ function MatchEngine(ctx: Ctx) {
   const opp = opportunities.find((o) => o.requirementId === d.id);
   return (
     <div className="md-content">
-      <div className="md-filters">
+      <div className="md-filters am-match-filter">
         <select aria-label="Requirement" value={d.id} onChange={(e) => setSel(e.target.value)} className="am-wide-select">
           {demands.map((x) => (
             <option key={x.id} value={x.id}>
@@ -1688,7 +1696,9 @@ function Revenue(ctx: Ctx) {
                       <strong>{stream}</strong>
                     </td>
                     {stages.map((s) => (
-                      <td key={s}>{amount(xs, s) ? inr(amount(xs, s)) : "—"}</td>
+                      <td key={s} data-label={s}>
+                        {amount(xs, s) ? inr(amount(xs, s)) : "—"}
+                      </td>
                     ))}
                   </tr>
                 );
@@ -1724,16 +1734,16 @@ function Revenue(ctx: Ctx) {
                       {f.stream} · {linkName(f)}
                     </small>
                   </td>
-                  <td>
+                  <td data-label="Payer">
                     {f.payer}
                     <small className="md-status-help">{f.trigger}</small>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`md-status ${f.status === "Collected" ? "active" : ""}`}>{f.status}</span>
                     <small className="md-status-help">{f.agreement ? "Agreement signed" : "No agreement"}</small>
                   </td>
-                  <td>{inr(f.amount)}</td>
-                  <td>
+                  <td data-label="Amount">{inr(f.amount)}</td>
+                  <td className="am-cell-action">
                     <span className="am-inline-actions">
                       <button className="md-row-action" onClick={() => form("fee", f)}>
                         Edit <ArrowRight size={13} />
@@ -1775,15 +1785,15 @@ function Revenue(ctx: Ctx) {
                     <strong>{d.name}</strong>
                     <small className="md-status-help">{d.stage}</small>
                   </td>
-                  <td>
+                  <td data-label="Contributor">
                     {properties.find((p) => p.id === d.propertyId)?.source ?? "—"}
                     <small className="md-status-help">
                       {d.sourceTier} · {d.rewardRate}%
                     </small>
                   </td>
-                  <td>{inr(collected)}</td>
-                  <td>{inr(rewardFor(d.rewardRate, collected))}</td>
-                  <td>
+                  <td data-label="Brokerage collected">{inr(collected)}</td>
+                  <td data-label="Reward">{inr(rewardFor(d.rewardRate, collected))}</td>
+                  <td data-label="Payout">
                     <span className={`md-status ${d.payoutStatus === "Paid" ? "active" : ""}`}>{d.payoutStatus}</span>
                   </td>
                 </tr>
@@ -1849,11 +1859,11 @@ function Members(ctx: Ctx) {
                         {m.email && ` · ${m.email}`}
                       </small>
                     </td>
-                    <td>
+                    <td data-label="Plan">
                       <span className={`md-status ${effective === "Free" ? "" : "active"}`}>{effective}</span>
                       {m.plan !== "Free" && <small className="md-status-help">{effective === "Free" ? `${m.plan} lapsed` : `Paid until ${m.planUntil}`}</small>}
                     </td>
-                    <td>
+                    <td className="am-cell-action" data-label="Change plan">
                       <form
                         className="am-plan-form"
                         onSubmit={(e) => {
