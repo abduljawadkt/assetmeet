@@ -465,3 +465,70 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
+
+/* ------------------------------------------------------------------ Account entry */
+.am-google {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  border: 1px solid #c5c5cc;
+  border-radius: 24px;
+  background: #fff;
+  color: #1d1d1f;
+  font-size: 14px;
+  font-weight: 500;
+}
+.am-google:hover {
+  background: #f8f8fa;
+}
+.am-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 0;
+  color: #86868b;
+  font-size: 12px;
+}
+.am-or::before,
+.am-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e0e5;
+}
+.am-password {
+  position: relative;
+  display: block;
+}
+.am-password input {
+  padding-right: 64px !important;
+}
+.am-password button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: #08734e;
+  font-size: 12px;
+  font-weight: 600;
+}
+.am-auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 16px;
+}
+.am-auth-links button {
+  color: #515154;
+  font-size: 13px;
+}
+.am-auth-links b {
+  color: #08734e;
+  font-weight: 600;
+}
+.engine-login .notice {
+  margin-top: 16px;
+}

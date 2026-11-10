@@ -2,7 +2,6 @@ import "server-only";
 import { headers } from "next/headers";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { magicLink } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { getDb } from "../db";
 import { account, session, user, verification } from "../db/auth-schema";
@@ -29,6 +28,10 @@ async function trustedOrigins(request?: Request) {
   return [...origins];
 }
 
+// Optional sign-in methods, switched on by the hosting environment.
+export const googleEnabled = () => Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+export const emailEnabled = () => Boolean(process.env.SMTP_HOST);
+
 function createAuth() {
   return betterAuth({
     baseURL: siteUrl(),
@@ -36,23 +39,38 @@ function createAuth() {
     trustedOrigins,
     database: drizzleAdapter(getDb(), { provider: "pg", schema: { user, session, account, verification } }),
     session: { expiresIn: 60 * 60 * 24 * 30 },
-    // Password sign-in for accounts created by the team (admin and demo logins).
-    // New people sign up with an email link only.
-    emailAndPassword: { enabled: true, disableSignUp: true, minPasswordLength: 10 },
-    plugins: [
-      magicLink({
-        expiresIn: 60 * 60,
-        sendMagicLink: async ({ email, url }) => {
-          await sendMail(
-            email,
-            "Your AssetMeet sign-in link",
-            `Sign in to AssetMeet:\n${url}\n\nThis link works once and expires in an hour. If you did not ask for it, ignore this email.`,
-            `<p>Sign in to AssetMeet:</p><p><a href="${url}">Sign in</a></p><p>This link works once and expires in an hour. If you did not ask for it, ignore this email.</p>`,
-          );
-        },
-      }),
-      nextCookies(),
-    ],
+    // Anyone can create an account with an email address (the user ID) and a password.
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 8,
+      maxPasswordLength: 128,
+      autoSignIn: true,
+      revokeSessionsOnPasswordReset: true,
+      // Password reset needs a mailbox (SMTP_*). Without one the option is hidden in the UI.
+      sendResetPassword: async ({ user: u, url }) => {
+        await sendMail(
+          u.email,
+          "Reset your AssetMeet password",
+          `Reset your AssetMeet password:\n${url}\n\nThis link works once and expires in an hour. If you did not ask for it, ignore this email.`,
+          `<p>Reset your AssetMeet password:</p><p><a href="${url}">Choose a new password</a></p><p>This link works once and expires in an hour. If you did not ask for it, ignore this email.</p>`,
+        );
+      },
+    },
+    // "Continue with Google" when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.
+    socialProviders: googleEnabled()
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            prompt: "select_account",
+          },
+        }
+      : {},
+    // Google sign-in joins an existing account with the same email only when that
+    // account's email is already verified, so nobody can pre-register someone
+    // else's address with a password and take over their Google sign-in.
+    account: { accountLinking: { enabled: true, trustedProviders: ["google"] } },
+    plugins: [nextCookies()],
   });
 }
 

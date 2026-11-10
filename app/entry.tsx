@@ -89,25 +89,45 @@ const roleMap: Record<string, "Owner" | "Contributor" | "Business"> = {
   Business: "Business",
 };
 
+export type AuthOptions = { google: boolean; email: boolean; resetToken?: string; error?: string };
+
+const authErrors: Record<string, string> = {
+  account_not_linked: "This email already has an AssetMeet password. Sign in with your password instead.",
+  INVALID_TOKEN: "That password reset link has expired or was already used. Request a new one.",
+  access_denied: "Google sign-in was cancelled.",
+};
+
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z" />
+      <path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
 export default function EngineEntry({
   initial,
   authenticated,
   name,
-  signinFailed,
+  auth,
   onReady,
 }: {
   initial: Engine;
   authenticated: boolean;
   name?: string;
-  signinFailed: boolean;
+  auth: AuthOptions;
   onReady: () => Promise<void>;
 }) {
   const [engine, setEngine] = useState<Engine>(initial);
   const [role, setRole] = useState(initial === "property" ? "Owner" : "Business");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(signinFailed ? "That sign-in link has expired or was already used. Request a new one." : "");
+  const [error, setError] = useState(auth.error ? (authErrors[auth.error] ?? "Sign-in didn't complete. Try again.") : "");
+  const [mode, setMode] = useState<"signup" | "signin" | "forgot" | "reset">(auth.resetToken ? "reset" : auth.error === "account_not_linked" ? "signin" : "signup");
+  const [showPassword, setShowPassword] = useState(false);
   const [sentTo, setSentTo] = useState("");
-  const [usePassword, setUsePassword] = useState(false);
   const professional = role === "Engineer" || role === "Builder";
   const back = `/?view=app&engine=${engine}`;
 
@@ -117,24 +137,62 @@ export default function EngineEntry({
     setError("");
   }
 
-  async function signIn(e: React.FormEvent<HTMLFormElement>) {
+  function switchMode(next: typeof mode) {
+    setMode(next);
+    setError("");
+    setSentTo("");
+  }
+
+  async function submitAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError("");
     const form = new FormData(e.currentTarget);
-    const email = String(form.get("email")).trim();
-    if (usePassword) {
-      const { error: err } = await authClient.signIn.email({ email, password: String(form.get("password")) });
-      if (err) {
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    let err: { message?: string; code?: string; status?: number } | null = null;
+    if (mode === "signup") {
+      ({ error: err } = await authClient.signUp.email({ name: String(form.get("name")).trim(), email, password }));
+      if (err?.code === "USER_ALREADY_EXISTS" || err?.status === 422) err = { message: "An account with this email already exists. Sign in instead." };
+    } else if (mode === "signin") {
+      ({ error: err } = await authClient.signIn.email({ email, password }));
+      if (err?.status === 401) err = { message: "That email and password don't match." };
+    } else if (mode === "forgot") {
+      ({ error: err } = await authClient.requestPasswordReset({ email, redirectTo: `/?view=app&engine=${engine}` }));
+      if (!err) {
         setBusy(false);
-        setError(err.status === 401 ? "That email and password don't match." : err.message || "Sign-in failed. Try again.");
-      } else window.location.assign(back);
+        setSentTo(email);
+        return;
+      }
+    } else {
+      if (password !== String(form.get("confirm"))) err = { message: "The two passwords don't match." };
+      else ({ error: err } = await authClient.resetPassword({ newPassword: password, token: auth.resetToken ?? "" }));
+      if (!err) {
+        setBusy(false);
+        history.replaceState(null, "", back);
+        switchMode("signin");
+        setSentTo("reset");
+        return;
+      }
+    }
+    if (err) {
+      setBusy(false);
+      setError(err.message || "Something went wrong. Try again.");
       return;
     }
-    const { error: err } = await authClient.signIn.magicLink({ email, callbackURL: back, errorCallbackURL: "/?view=app&signin=failed" });
+    // Signed in: load the session. New accounts continue to the profile step on this screen.
+    try {
+      await onReady();
+    } catch {
+      setError("You are signed in, but your workspace didn't load. Refresh the page.");
+    }
     setBusy(false);
-    if (err) setError(err.message || "We couldn't send the sign-in email. Try again.");
-    else setSentTo(email);
+  }
+
+  async function google() {
+    setError("");
+    const { error: err } = await authClient.signIn.social({ provider: "google", callbackURL: back, errorCallbackURL: back });
+    if (err) setError(err.message || "Google sign-in isn't available right now.");
   }
 
   async function createProfile(e: React.FormEvent<HTMLFormElement>) {
@@ -186,61 +244,128 @@ export default function EngineEntry({
             </div>
           )}
           {!authenticated ? (
-            sentTo ? (
-              <div className="engine-login">
-                <span className="entry-lock">
-                  <ShieldCheck size={22} />
-                </span>
-                <h3>Check your email</h3>
-                <p>
-                  We sent a sign-in link to <b>{sentTo}</b>. Open it on this device to continue. The link works once and
-                  expires after an hour.
-                </p>
-                <button className="quick-entry" type="button" onClick={() => setSentTo("")}>
-                  Use a different email
-                </button>
-              </div>
-            ) : (
-              <form className="engine-login" onSubmit={signIn}>
-                <span className="entry-lock">
-                  <ShieldCheck size={22} />
-                </span>
-                <h3>{engine === "property" ? "List your property" : "Post your requirement"}</h3>
-                <p>
-                  Sign in with your email. We send a one-time link, so there is no password to remember. You can list
-                  properties and post requirements with one account.
-                </p>
+            <form className="engine-login" onSubmit={submitAuth} key={mode}>
+              <span className="entry-lock">
+                <ShieldCheck size={22} />
+              </span>
+              <h3>
+                {mode === "signup"
+                  ? "Create your account"
+                  : mode === "signin"
+                    ? "Welcome back"
+                    : mode === "forgot"
+                      ? "Reset your password"
+                      : "Choose a new password"}
+              </h3>
+              <p>
+                {mode === "signup"
+                  ? "Your email is your user ID. One account lists properties and posts requirements."
+                  : mode === "signin"
+                    ? "Sign in with your email and password."
+                    : mode === "forgot"
+                      ? auth.email
+                        ? "Enter your email and we will send you a link to choose a new password."
+                        : "Password reset by email is not switched on yet. Contact the AssetMeet team and they will help you back in."
+                      : "Enter a new password for your account."}
+              </p>
+              {sentTo && (
+                <div className="notice" role="status">
+                  {sentTo === "reset" ? "Your password is changed. Sign in with the new one." : `If ${sentTo} has an account, a reset link is on its way. It works once and expires in an hour.`}
+                </div>
+              )}
+              {auth.google && (mode === "signup" || mode === "signin") && (
+                <>
+                  <button type="button" className="am-google" onClick={google}>
+                    <GoogleMark />
+                    Continue with Google
+                  </button>
+                  <div className="am-or" aria-hidden="true">
+                    <span>or</span>
+                  </div>
+                </>
+              )}
+              {!(mode === "forgot" && !auth.email) && (
                 <div className="form-grid">
-                  <label className="full">
-                    Work email *
-                    <input name="email" type="email" required autoComplete={usePassword ? "username" : "email"} inputMode="email" placeholder="you@company.com" />
-                  </label>
-                  {usePassword && (
+                  {mode === "signup" && (
                     <label className="full">
-                      Password *
-                      <input name="password" type="password" required autoComplete="current-password" />
+                      Your name *
+                      <input name="name" required minLength={2} maxLength={100} autoComplete="name" />
+                    </label>
+                  )}
+                  {mode !== "reset" && (
+                    <label className="full">
+                      Email (your user ID) *
+                      <input name="email" type="email" required autoComplete={mode === "signup" ? "email" : "username"} inputMode="email" placeholder="you@company.com" />
+                    </label>
+                  )}
+                  {mode !== "forgot" && (
+                    <label className="full">
+                      {mode === "reset" ? "New password *" : "Password *"}
+                      <span className="am-password">
+                        <input
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={mode === "signin" ? 1 : 8}
+                          maxLength={128}
+                          autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                        />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </span>
+                      {mode !== "signin" && <small className="am-hint">At least 8 characters</small>}
+                    </label>
+                  )}
+                  {mode === "reset" && (
+                    <label className="full">
+                      Confirm new password *
+                      <input name="confirm" type={showPassword ? "text" : "password"} required minLength={8} maxLength={128} autoComplete="new-password" />
                     </label>
                   )}
                 </div>
+              )}
+              {!(mode === "forgot" && !auth.email) && (
                 <button className="landing-primary full" disabled={busy}>
-                  {usePassword ? (busy ? "Signing in…" : "Sign in") : busy ? "Sending link…" : "Email me a sign-in link"} <ArrowRight size={17} />
+                  {busy
+                    ? "Please wait…"
+                    : mode === "signup"
+                      ? "Create account"
+                      : mode === "signin"
+                        ? "Sign in"
+                        : mode === "forgot"
+                          ? "Send reset link"
+                          : "Save new password"}{" "}
+                  <ArrowRight size={17} />
                 </button>
-                <button
-                  className="quick-entry"
-                  type="button"
-                  onClick={() => {
-                    setUsePassword(!usePassword);
-                    setError("");
-                  }}
-                >
-                  {usePassword ? "Email me a sign-in link instead" : "Sign in with a password instead"}
-                </button>
-                <Link className="quick-entry" href="/?view=app&demo=1">
-                  Or explore with sample data
-                </Link>
-                <small>Your records are private to your account. Sample data is fictional and nothing there is saved.</small>
-              </form>
-            )
+              )}
+              <div className="am-auth-links">
+                {mode === "signup" && (
+                  <button type="button" onClick={() => switchMode("signin")}>
+                    Already have an account? <b>Sign in</b>
+                  </button>
+                )}
+                {mode === "signin" && (
+                  <>
+                    <button type="button" onClick={() => switchMode("signup")}>
+                      New to AssetMeet? <b>Create an account</b>
+                    </button>
+                    <button type="button" onClick={() => switchMode("forgot")}>
+                      Forgot password?
+                    </button>
+                  </>
+                )}
+                {(mode === "forgot" || mode === "reset") && (
+                  <button type="button" onClick={() => switchMode("signin")}>
+                    Back to <b>sign in</b>
+                  </button>
+                )}
+              </div>
+              <Link className="quick-entry" href="/?view=app&demo=1">
+                Or explore with sample data
+              </Link>
+              <small>Your records are private to your account. Sample data is fictional and nothing there is saved.</small>
+            </form>
           ) : (
             <form onSubmit={createProfile} key={engine}>
               <p className="demo-customise-label">Set up your workspace{name && !name.includes("@") ? `, ${name.split(" ")[0]}` : ""}. Choose what describes you.</p>

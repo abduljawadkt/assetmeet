@@ -25,7 +25,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import EngineEntry, { type Engine } from "./entry";
+import EngineEntry, { type AuthOptions, type Engine } from "./entry";
 import RecordForm from "./record-form";
 import { AssetWordmark, photo } from "./brand";
 import { api, type Member, type Row, type Session } from "../lib/api";
@@ -73,7 +73,7 @@ const demoSession: Session = {
 };
 const demoRows: Row[] = [...demoProperties, ...demoRequirements, ...demoDeals, ...demoOpportunities, ...demoFees];
 
-export default function Workspace({ engine, demo, signinFailed }: { engine: Engine; demo: boolean; signinFailed: boolean }) {
+export default function Workspace({ engine, demo, auth }: { engine: Engine; demo: boolean; auth: AuthOptions }) {
   const [session, setSession] = useState<Session | null>(demo ? demoSession : null);
   const [rows, setRows] = useState<Row[]>(demo ? demoRows : []);
   const [loadError, setLoadError] = useState("");
@@ -118,7 +118,7 @@ export default function Workspace({ engine, demo, signinFailed }: { engine: Engi
     return (
       <div className="asset-app public-shell">
         <div className="app-content">
-          <EngineEntry initial={engine} authenticated={session.authenticated} name={session.name} signinFailed={signinFailed} onReady={load} />
+          <EngineEntry initial={engine} authenticated={session.authenticated} name={session.name} auth={auth} onReady={load} />
         </div>
       </div>
     );

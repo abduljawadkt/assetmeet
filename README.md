@@ -16,7 +16,7 @@ The workspace follows the **Revenue & Business Model** document (28 Oct 2026): o
 - **Members** (staff): set a member's plan and the date it is paid up to. There is no online checkout; a plan lapses to Free after that date.
 - Guardrails enforced on the server (`lib/rules.ts`, tested in `lib/matching.test.ts`): owner permission and a signed mandate before the mandate stage; no automatic reward for a basic data record; payout approval only after brokerage is collected; contracted fees need a signed agreement (and, on a deal, a mandate); a second fee on the same project needs disclosure; collected fees need a received date. Owners and contributors cannot set verification or mandate-backed statuses; businesses cannot qualify their own demand.
 - Interface matches the AssetMeet-Deployable reference design (see `DESIGN.md`): intro + landing page, an entry screen for sign-in and onboarding, and a sidebar workspace with list + detail panels and the Asset / Demand Highway market view. Business facts that are not yet confirmed (fees, contact details, proof) live in `lib/site-content.ts` and are not shown on the current landing page.
-- Email sign-in (one-time link) and password sign-in for team-created accounts with Better Auth; Neon Postgres; append-only `events` audit table, including plan changes.
+- Accounts with Better Auth: anyone can create an account with an email address (the user ID) and a password, or continue with Google when `GOOGLE_CLIENT_*` is set. Password reset by email works once `SMTP_*` is set. Google sign-in joins an existing account only when that account's email is already verified, so nobody can pre-register someone else's address. Neon Postgres; append-only `events` audit table, including plan changes.
 - Read-only sample workspace at `/?view=app&demo=1` (fictional records, nothing saved).
 
 ### Values to confirm before launch
@@ -26,7 +26,7 @@ The prices, quotas, Free-plan limits (5 assets, 1 demand, no self-service matchi
 Run these in the Neon SQL editor, in order: `db/migrations/0001_revenue_model.sql` (adds the new columns and tables and maps existing records to the new statuses; collected deal fees become Collected brokerage fee records), then `db/migrations/0002_drop_replaced_columns.sql` (drops `properties.market` and `deals.collected`). Deploy the new code right after; the old code does not work with the new columns.
 
 ## Admin and demo accounts
-`node --experimental-strip-types scripts/demo-accounts.ts > demo.sql` creates an admin (Staff) account, demo Business, Owner and Contributor accounts, and sample records. It prints the generated passwords once (only hashes are stored). Run `demo.sql` in the Neon SQL editor. These accounts sign in with **Sign in with a password instead**; everyone else signs up with an email link. Delete the demo accounts before a public launch:
+`node --experimental-strip-types scripts/demo-accounts.ts > demo.sql` creates an admin (Staff) account, demo Business, Owner and Contributor accounts, and sample records. It prints the generated passwords once (only hashes are stored). Run `demo.sql` in the Neon SQL editor. These accounts sign in with their email and password; everyone else creates an account the same way or continues with Google. Delete the demo accounts before a public launch:
 
 ```sql
 DELETE FROM "user" WHERE email IN ('business@assetmeet.com', 'owner@assetmeet.com', 'contributor@assetmeet.com');
@@ -45,7 +45,7 @@ Their user id is the `owner` value on their profile row, or `SELECT id FROM "use
 Fill in `lib/site-content.ts`; confirm plan prices and quotas in `lib/rules.ts`; online subscription payment and invoicing (GST); refund policy; owner consent evidence and document uploads; duplicate and source dispute review; a payout ledger; audit UI; backup and retention; rate limiting and monitoring; security testing; email notifications; legal and business content; domain setup.
 
 ## Stack
-Next.js 16 on Node.js, Neon Postgres (through `DATABASE_URL`, with Drizzle ORM), and Better Auth for email sign-in links. Sign-in data (users, sessions, one-time links) lives in the same database, in the `user`, `session`, `account` and `verification` tables. Emails are sent through your own mailbox over SMTP.
+Next.js 16 on Node.js, Neon Postgres (through `DATABASE_URL`, with Drizzle ORM), and Better Auth for email-and-password and Google sign-in. Sign-in data (users, sessions, linked Google accounts, reset tokens) lives in the same database, in the `user`, `session`, `account` and `verification` tables. Emails are sent through your own mailbox over SMTP.
 
 ## Deploying on Hostinger (Node.js web app)
 
@@ -55,7 +55,12 @@ Next.js 16 on Node.js, Neon Postgres (through `DATABASE_URL`, with Drizzle ORM),
 3. Connect > copy the **pooled** connection string. This is `DATABASE_URL`.
 
 ### 2. Mailbox
-Create a sending address (for example `no-reply@assetmeet.com` in Hostinger Emails). Its SMTP settings go into `SMTP_*`. Sign-in links will not be sent without them.
+Create a sending address (for example `no-reply@assetmeet.com` in Hostinger Emails). Its SMTP settings go into `SMTP_*`. They are optional: without them people still create accounts and sign in, but "Forgot password" emails cannot be sent, so the reset option is hidden.
+
+### Google sign-in (optional)
+1. Google Cloud Console > APIs & Services > OAuth consent screen: set the app name (AssetMeet), support email and the `assetmeet.com` domain.
+2. Credentials > Create credentials > OAuth client ID > Web application. Authorised JavaScript origin `https://assetmeet.com`; authorised redirect URI `https://assetmeet.com/api/auth/callback/google`.
+3. Put the client ID and secret into `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in Hostinger, make sure `NEXT_PUBLIC_SITE_URL` is `https://assetmeet.com`, and redeploy. The "Continue with Google" button appears once both are set.
 
 ### 3. Hostinger
 1. hPanel > Websites > Add website > Node.js app, and connect this GitHub repository (branch `main`).
@@ -64,4 +69,4 @@ Create a sending address (for example `no-reply@assetmeet.com` in Hostinger Emai
 4. Point your domain at the app and enable SSL.
 
 ## Development
-Node >=22.13.0. Copy `.env.example` to `.env.local` and fill it in, then `npm run dev`. `npm test` runs the matching and business-rule tests. `npx tsc --noEmit` checks types. `npm run build` then `npm start` runs the production server. After changing `db/schema.ts`, run `npm run db:generate` and apply the new file in `db/migrations/`. Without `SMTP_HOST`, `npm run dev` prints sign-in links to the terminal instead of emailing them.
+Node >=22.13.0. Copy `.env.example` to `.env.local` and fill it in, then `npm run dev`. `npm test` runs the matching and business-rule tests. `npx tsc --noEmit` checks types. `npm run build` then `npm start` runs the production server. After changing `db/schema.ts`, run `npm run db:generate` and apply the new file in `db/migrations/`. Without `SMTP_HOST`, `npm run dev` prints password-reset links to the terminal instead of emailing them.
