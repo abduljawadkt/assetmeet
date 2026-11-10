@@ -13,7 +13,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
       <Workspace
         engine={engine}
         demo={params.demo === "1"}
-        auth={{ google: googleEnabled(), email: emailEnabled(), resetToken: one(params.token), error: one(params.error) }}
+        auth={{ google: googleEnabled(), email: emailEnabled(), resetToken: one(params.token), error: one(params.error), signIn: params.mode === "signin" }}
       />
     );
   }

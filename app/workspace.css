@@ -532,3 +532,26 @@
 .engine-login .notice {
   margin-top: 16px;
 }
+
+/* Landing header: a quiet Sign in link beside Get started; inside the menu on phones. */
+.ap-signin {
+  color: #1d1d1f;
+  font-size: 13px;
+  padding: 8px 4px;
+}
+.ap-signin:hover {
+  color: #08734e;
+}
+.ap-nav nav .ap-menu-signin {
+  display: none;
+}
+@media (max-width: 760px) {
+  .ap-signin {
+    display: none;
+  }
+  .ap-nav nav .ap-menu-signin {
+    display: block;
+    color: #08734e;
+    font-weight: 600;
+  }
+}

@@ -89,7 +89,7 @@ const roleMap: Record<string, "Owner" | "Contributor" | "Business"> = {
   Business: "Business",
 };
 
-export type AuthOptions = { google: boolean; email: boolean; resetToken?: string; error?: string };
+export type AuthOptions = { google: boolean; email: boolean; resetToken?: string; error?: string; signIn?: boolean };
 
 const authErrors: Record<string, string> = {
   account_not_linked: "This email already has an AssetMeet password. Sign in with your password instead.",
@@ -125,7 +125,7 @@ export default function EngineEntry({
   const [role, setRole] = useState(initial === "property" ? "Owner" : "Business");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(auth.error ? (authErrors[auth.error] ?? "Sign-in didn't complete. Try again.") : "");
-  const [mode, setMode] = useState<"signup" | "signin" | "forgot" | "reset">(auth.resetToken ? "reset" : auth.error === "account_not_linked" ? "signin" : "signup");
+  const [mode, setMode] = useState<"signup" | "signin" | "forgot" | "reset">(auth.resetToken ? "reset" : auth.signIn || auth.error === "account_not_linked" ? "signin" : "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [sentTo, setSentTo] = useState("");
   const professional = role === "Engineer" || role === "Builder";
