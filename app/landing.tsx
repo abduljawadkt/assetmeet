@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, Building2, Compass, Hammer, HardHat, LogIn, Search, Volume2 } from "lucide-react";
 
-// Landing page inspired by micro.company: five quiet full-screen chapters,
-// monochrome, a serif for chapter titles, a dot rail showing where you are,
-// and each chapter easing in. AssetMeet's own words and brand throughout.
+// Landing page inspired by micro.company, in AssetMeet's brand green: five
+// quiet full-screen chapters that alternate green, mint and white, a serif for
+// chapter titles, a dot rail showing where you are, and each chapter easing in.
+// The dots and the Sign in link switch tone to stay readable on each chapter.
 
 const start = (engine: "property" | "requirement") => `/?view=app&engine=${engine}`;
 const chapters = ["Welcome", "AssetMeet", "Our promise", "Start here", "Get in touch"];
+const greenChapters = [0, 4];
 
 const promises: [string, React.ReactNode][] = [
   ["I.", <><b>List what you have</b>, even before it is built.</>],
@@ -72,7 +74,11 @@ export default function Landing() {
   }
 
   return (
-    <main className={`mc ${ready ? "mc-ready" : ""}`} ref={root}>
+    <main
+      className={`mc ${ready ? "mc-ready" : ""}`}
+      data-tone={greenChapters.includes(active) ? "dark" : "light"}
+      ref={root}
+    >
       <a className="mc-skip" href="#start-here">
         Skip to start here
       </a>
@@ -86,7 +92,7 @@ export default function Landing() {
         ))}
       </nav>
 
-      <section className="mc-slide" aria-label="Welcome">
+      <section className="mc-slide mc-green" aria-label="Welcome">
         <div className="mc-in">
           <span className="mc-mark" aria-hidden="true">
             am
@@ -100,7 +106,7 @@ export default function Landing() {
         </button>
       </section>
 
-      <section className="mc-slide" aria-labelledby="mc-define">
+      <section className="mc-slide mc-mint" aria-labelledby="mc-define">
         <div className="mc-in">
           <h2 id="mc-define" className="mc-serif">
             AssetMeet
@@ -133,7 +139,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="mc-slide" id="start-here" aria-labelledby="mc-start">
+      <section className="mc-slide mc-mint" id="start-here" aria-labelledby="mc-start">
         <div className="mc-in mc-wide">
           <h2 id="mc-start" className="mc-serif">
             Start Here
@@ -157,7 +163,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="mc-slide mc-close" aria-label="Get in touch">
+      <section className="mc-slide mc-green mc-close" aria-label="Get in touch">
         <div className="mc-in">
           <p>
             Own a building, plot or space in Kerala?

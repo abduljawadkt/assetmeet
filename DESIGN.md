@@ -18,7 +18,7 @@ Change the reference files only to fix a defect; put new styles in `app/workspac
 
 ## Flow
 
-1. **Landing** (`app/landing.tsx`, `app/landing.css`): inspired by micro.company. Five quiet full-screen chapters, monochrome, Source Serif 4 for chapter titles with Manrope for everything else, a fixed dot rail, gentle snapping and each chapter easing in (off with reduced motion; content is never hidden without JavaScript). Chapters: Namaskaram greeting with the am mark; a dictionary-style definition of AssetMeet with a pronounce button; Our Promise (five numbered lines); Start Here (six icon choices); closing one-line links. The brand green appears only in the mark and on hover.
+1. **Landing** (`app/landing.tsx`, `app/landing.css`): inspired by micro.company. Five quiet full-screen chapters in the brand green, alternating green (#087f55), mint (#edf8f2) and white, with forest #173d2c for text on light chapters; Source Serif 4 for chapter titles with Manrope for everything else, a fixed dot rail, gentle snapping and each chapter easing in (off with reduced motion; content is never hidden without JavaScript). Chapters: Namaskaram greeting with the am mark; a dictionary-style definition of AssetMeet with a pronounce button; Our Promise (five numbered lines); Start Here (six icon choices); closing one-line links. The dot rail and the Sign in link switch to white on the green chapters.
 2. **Entry** (`app/entry.tsx`): "I have a property" / "I need a property", email sign-in link (or password for team-created accounts), then role and profile. The engine guide animation sits beside it.
 3. **Workspace** (`app/workspace.tsx`): sidebar shell.
    - Members: Dashboard, My properties, My requirements, Introductions, Market view, Plan.
