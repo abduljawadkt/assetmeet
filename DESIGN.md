@@ -18,7 +18,7 @@ Change the reference files only to fix a defect; put new styles in `app/workspac
 
 ## Flow
 
-1. **Landing** (`app/landing.tsx`): intro screen ("Every building is an asset…") → full page with two paths, process tabs, professionals band, trust, questions.
+1. **Landing** (`app/landing.tsx`, `app/landing.css`): the reference's style, simplified. No splash screen. Hero with the tagline, one plain sentence, the two choices and three reassurances; How it works (three visible steps); Start where you are (one block per audience); the dark professionals band; three commitments; questions; final choice; footer with useful links.
 2. **Entry** (`app/entry.tsx`): "I have a property" / "I need a property", email sign-in link (or password for team-created accounts), then role and profile. The engine guide animation sits beside it.
 3. **Workspace** (`app/workspace.tsx`): sidebar shell.
    - Members: Dashboard, My properties, My requirements, Introductions, Market view, Plan.
