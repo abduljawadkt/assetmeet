@@ -1,0 +1,265 @@
+/* AssetMeet additions in the reference's visual language: the pieces of the
+   live product that the reference design does not cover (record forms, facts,
+   staff Deal Desk tags, opportunity tracks, introduction requests). */
+
+.am-form .am-full,
+.am-form .error {
+  grid-column: 1 / -1;
+}
+.am-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d8e2da;
+  border-radius: 8px;
+  font: 13px "DM Sans", sans-serif;
+  resize: vertical;
+}
+.am-hint {
+  color: #93a398;
+  font-size: 10px;
+}
+.am-check {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px !important;
+  font-size: 12px !important;
+  color: #33463a !important;
+}
+.am-check input {
+  width: auto !important;
+  margin-top: 2px;
+  accent-color: #0c8555;
+}
+.am-form .error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fdecea;
+  color: #b42318;
+  font-size: 12px;
+}
+
+.am-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 18px 0;
+  border: 1px solid #e3ebe4;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e3ebe4;
+}
+.am-facts div {
+  padding: 12px 14px;
+  background: #fff;
+}
+.am-facts dt {
+  color: #8a9a8e;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+.am-facts dd {
+  margin: 4px 0 0;
+  color: #1f3a2a;
+  font-size: 13px;
+  font-weight: 500;
+}
+.am-signals {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.am-signal {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #eef6f0;
+  color: #33463a;
+  font-size: 12px;
+}
+.am-signal.warning {
+  background: #fdf6e7;
+}
+.am-signal.danger {
+  background: #fdecea;
+}
+
+.am-match-wrap {
+  border-bottom: 1px solid #e5ede6;
+  padding-bottom: 12px;
+}
+.am-match-wrap .hw-match {
+  border-bottom: 0;
+  padding-bottom: 8px;
+}
+.am-match-action,
+.am-match-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 75px;
+  color: #0c8555;
+  font-size: 12px;
+  font-weight: 600;
+}
+.am-match-state {
+  color: #6c8473;
+  font-weight: 500;
+}
+.am-intro {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 4px 75px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f3f8f4;
+  font-size: 12px;
+}
+.am-intro label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #33463a;
+}
+.am-intro input {
+  accent-color: #0c8555;
+  margin-top: 2px;
+}
+.am-intro div {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.am-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 4px;
+}
+.am-match-wrap > .am-tags {
+  margin-left: 75px;
+}
+.am-tags em {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f0f2ee;
+  color: #5d6c62;
+  font-size: 10px;
+  font-style: normal;
+}
+.am-tags em.ok {
+  background: #e3f3e8;
+  color: #0c7a4c;
+}
+.am-tags em.danger {
+  background: #fdecea;
+  color: #b42318;
+}
+.am-tags small {
+  color: #8a9a8e;
+  font-size: 10px;
+}
+.am-overdue {
+  color: #a3441d !important;
+  font-weight: 600;
+}
+.am-pipeline .deal {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+}
+.am-pipeline .deal p {
+  margin: 6px 0 0;
+}
+.am-pipeline .deal .outline {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+.am-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  margin: 0 24px 12px;
+  padding: 0;
+  list-style: none;
+}
+.am-track li {
+  height: 5px;
+  border-radius: 999px;
+  background: #e3ebe4;
+}
+.am-track li.done {
+  background: #0c8555;
+}
+.am-static {
+  cursor: default;
+}
+.am-inline-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.am-inline-actions button {
+  color: #0c8555;
+  font-size: 12px;
+}
+.am-plan-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.am-plan-form select,
+.am-plan-form input {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d8e2da;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+}
+.am-plan-form .hw-secondary {
+  padding: 8px 14px;
+}
+.am-wide-select {
+  flex: 1;
+}
+.am-pad {
+  padding: 8px 24px 16px;
+}
+.md-plan-table tr.am-current td {
+  background: #eef6f0;
+  font-weight: 600;
+}
+.entry-loading {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  max-width: 1150px;
+  margin: 80px auto;
+  padding: 0 24px;
+  color: #6c8473;
+}
+.engine-login .form-grid {
+  margin: 18px 0 14px;
+}
+.engine-login .quick-entry {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .am-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .am-match-action,
+  .am-match-state,
+  .am-intro,
+  .am-match-wrap > .am-tags {
+    margin-left: 0;
+  }
+}
