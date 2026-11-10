@@ -12,6 +12,39 @@ const start = (engine: "property" | "requirement") => `/?view=app&engine=${engin
 const chapters = ["Welcome", "AssetMeet", "Our promise", "Start here", "Get in touch"];
 const greenChapters = [0, 4];
 
+// Browsers do not say which voices are female, so we look for well-known
+// female English voices by name, Indian English first (Edge, Windows, Apple,
+// Chrome).
+const femaleVoiceNames = [
+  "neerja",
+  "heera",
+  "veena",
+  "female",
+  "samantha",
+  "karen",
+  "moira",
+  "tessa",
+  "serena",
+  "fiona",
+  "victoria",
+  "zira",
+  "aria",
+  "jenny",
+  "sonia",
+  "libby",
+  "hazel",
+  "susan",
+  "catherine",
+  "google us english",
+];
+function femaleVoice(voices: SpeechSynthesisVoice[]) {
+  const english = voices.filter((v) => v.lang.toLowerCase().startsWith("en"));
+  for (const name of femaleVoiceNames) {
+    const found = english.find((v) => v.name.toLowerCase().includes(name));
+    if (found) return found;
+  }
+}
+
 const promises: [string, React.ReactNode][] = [
   ["I.", <><b>List what you have</b>, even before it is built.</>],
   ["II.", <><b>Post what you need</b>, and we look for the fit.</>],
@@ -20,13 +53,16 @@ const promises: [string, React.ReactNode][] = [
   ["V.", <><b>Fees only in writing</b>, agreed before any work.</>],
 ];
 
+// Each icon has its own small movement (see landing.css): the building rises
+// with its windows lighting up, the magnifier looks around, the hard hat nods,
+// the hammer strikes, the compass needle spins and the arrow steps in.
 const doors = [
-  { icon: Building2, title: "I have a property", text: "List a building, plot or space, free", href: start("property") },
-  { icon: Search, title: "I need a property", text: "Post the space you are looking for", href: start("requirement") },
-  { icon: HardHat, title: "I’m an engineer", text: "Introduce properties, earn when eligible", href: start("property") },
-  { icon: Hammer, title: "I’m a builder", text: "Record projects while they are built", href: start("property") },
-  { icon: Compass, title: "Look around", text: "Open a sample workspace", href: "/?view=app&demo=1" },
-  { icon: LogIn, title: "Sign in", text: "Continue with email or Google", href: "/?view=app&mode=signin" },
+  { icon: Building2, move: "rise", title: "I have a property", text: "List a building, plot or space, free", href: start("property") },
+  { icon: Search, move: "look", title: "I need a property", text: "Post the space you are looking for", href: start("requirement") },
+  { icon: HardHat, move: "nod", title: "I’m an engineer", text: "Introduce properties, earn when eligible", href: start("property") },
+  { icon: Hammer, move: "strike", title: "I’m a builder", text: "Record projects while they are built", href: start("property") },
+  { icon: Compass, move: "spin", title: "Look around", text: "Open a sample workspace", href: "/?view=app&demo=1" },
+  { icon: LogIn, move: "enter", title: "Sign in", text: "Continue with email or Google", href: "/?view=app&mode=signin" },
 ];
 
 export default function Landing() {
@@ -50,6 +86,8 @@ export default function Landing() {
       seen.observe(s);
       current.observe(s);
     });
+    // Ask for the voice list early, so the pronunciation is ready on first click.
+    if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
     // Content is visible without JavaScript; the easing starts only once this runs.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
@@ -66,11 +104,29 @@ export default function Landing() {
 
   function say() {
     if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("Asset Meet");
-    u.lang = "en-IN";
-    u.rate = 0.9;
-    window.speechSynthesis.speak(u);
+    const synth = window.speechSynthesis;
+    let spoken = false;
+    const speak = () => {
+      if (spoken) return;
+      spoken = true;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance("Asset Meet");
+      const voice = femaleVoice(synth.getVoices());
+      if (voice) {
+        u.voice = voice;
+        u.lang = voice.lang;
+      } else {
+        // No known female voice on this device: a raised pitch is the closest.
+        u.lang = "en-IN";
+        u.pitch = 1.3;
+      }
+      u.rate = 0.9;
+      synth.speak(u);
+    };
+    if (synth.getVoices().length) return speak();
+    // Some browsers load their voices only on first use.
+    synth.addEventListener("voiceschanged", speak, { once: true });
+    setTimeout(speak, 500);
   }
 
   return (
@@ -145,12 +201,12 @@ export default function Landing() {
             Start Here
           </h2>
           <ul className="mc-doors">
-            {doors.map((d) => {
+            {doors.map((d, i) => {
               const Icon = d.icon;
               return (
                 <li key={d.title}>
                   <Link href={d.href}>
-                    <span className="mc-door-icon">
+                    <span className={`mc-door-icon mc-move-${d.move}`} style={{ "--i": i } as React.CSSProperties}>
                       <Icon size={24} strokeWidth={1.8} aria-hidden="true" />
                     </span>
                     <b>{d.title}</b>
